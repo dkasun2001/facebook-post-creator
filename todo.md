@@ -32,3 +32,6 @@
 - [x] Add named local presets for favorite template and color-scheme combinations.
 - [x] Add preset save, apply, and remove controls in the template editor.
 - [x] Verify preset persistence and correct template/palette application, then checkpoint the update. A Ruby Signal preset persisted across reload, reapplied its Signal/Ruby combination after a change, and removed cleanly from both UI and local storage.
+- [x] Add accessible per-element color controls for core artwork layers and template accents.
+- [x] Apply custom colors to live preview, all supported templates, and PNG export drawing.
+- [x] Verify color overrides and reset behavior, then checkpoint the update. Nine labeled native controls update individual CSS variables; reset returns to the selected scheme; type checks, 18 tests, build, mobile layout, and a customized poll PNG download were verified.

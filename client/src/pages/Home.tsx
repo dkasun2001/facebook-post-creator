@@ -22,6 +22,7 @@ import {
   Palette,
   Plus,
   RotateCcw,
+  SlidersHorizontal,
   Sparkles,
   Trash2,
   Type,
@@ -36,6 +37,7 @@ import { templateData, type Template } from "./templateConfig";
 import { hasPostText } from "./postMetadata";
 import { postColorSchemes, toRgba, type PostColorScheme } from "./colorSchemes";
 import { parsePostPresets, POST_PRESETS_STORAGE_KEY, type PostPreset } from "./postPresets";
+import { colorsFromScheme, elementColorControls, setElementColor, type PostElementColorKey, type PostElementColors } from "./postElementColors";
 
 type Language = "english" | "sinhala";
 type Format = "square" | "portrait";
@@ -171,6 +173,8 @@ export default function Home() {
   const [selectedImage, setSelectedImage] = useState(generatedImages[0]);
   const [template, setTemplate] = useState<Template>("poll");
   const [colorScheme, setColorScheme] = useState<PostColorScheme["id"]>("navy");
+  const [elementColors, setElementColors] = useState<PostElementColors>(() => colorsFromScheme(postColorSchemes[0]));
+  const [hasCustomColors, setHasCustomColors] = useState(false);
   const [presets, setPresets] = useState<PostPreset[]>([]);
   const [presetName, setPresetName] = useState("");
   const [presetsReady, setPresetsReady] = useState(false);
@@ -357,8 +361,11 @@ export default function Home() {
   };
 
   const applyPreset = (preset: PostPreset) => {
+    const presetScheme = postColorSchemes.find((scheme) => scheme.id === preset.colorScheme) ?? postColorSchemes[0];
     setTemplate(preset.template);
     setColorScheme(preset.colorScheme);
+    setElementColors(colorsFromScheme(presetScheme));
+    setHasCustomColors(false);
     setExpanded("template");
     toast.success(`Applied ${preset.name}.`);
   };
@@ -368,6 +375,23 @@ export default function Home() {
     toast.message("Preset removed from this device.");
   };
 
+  const selectColorScheme = (scheme: PostColorScheme) => {
+    setColorScheme(scheme.id);
+    setElementColors(colorsFromScheme(scheme));
+    setHasCustomColors(false);
+  };
+
+  const changeElementColor = (key: PostElementColorKey, value: string) => {
+    setElementColors((current) => setElementColor(current, key, value));
+    setHasCustomColors(true);
+  };
+
+  const resetElementColors = () => {
+    setElementColors(colorsFromScheme(selectedColorScheme));
+    setHasCustomColors(false);
+    toast.message("Element colors reset to the selected scheme.");
+  };
+
   const startFresh = () => {
     setStory("");
     setHeadlines(language === "sinhala" ? sinhalaHeadlines : englishHeadlines);
@@ -375,6 +399,8 @@ export default function Home() {
     setSelectedImage(generatedImages[0]);
     setTemplate("poll");
     setColorScheme("navy");
+    setElementColors(colorsFromScheme(postColorSchemes[0]));
+    setHasCustomColors(false);
     setFormat("square");
     setExpanded("story");
     toast.message("Fresh board, same bright point of view.");
@@ -390,7 +416,8 @@ export default function Home() {
     if (!context) return;
 
     const palette = selectedColorScheme;
-    context.fillStyle = palette.ink;
+    const colors = elementColors;
+    context.fillStyle = colors.overlay;
     context.fillRect(0, 0, width, height);
     try {
       const source = new Image();
@@ -407,47 +434,62 @@ export default function Home() {
     } catch {
       const imageGradient = context.createLinearGradient(0, 0, 0, height * 0.55);
       imageGradient.addColorStop(0, palette.inkMid);
-      imageGradient.addColorStop(1, palette.ink);
+      imageGradient.addColorStop(1, colors.overlay);
       context.fillStyle = imageGradient;
       context.fillRect(0, 0, width, height * 0.56);
     }
     const shade = context.createLinearGradient(0, height * 0.3, 0, height * 0.72);
-    shade.addColorStop(0, toRgba(palette.ink, 0));
-    shade.addColorStop(0.58, toRgba(palette.ink, 0.48));
-    shade.addColorStop(1, palette.ink);
+    shade.addColorStop(0, toRgba(colors.overlay, 0));
+    shade.addColorStop(0.58, toRgba(colors.overlay, 0.48));
+    shade.addColorStop(1, colors.overlay);
     context.fillStyle = shade;
     context.fillRect(0, 0, width, height);
     await document.fonts.ready;
     const isSinhalaHeadline = language === "sinhala";
     const headlineSize = isSinhalaHeadline ? format === "square" ? 72 : 78 : format === "square" ? 65 : 72;
     const lineHeight = isSinhalaHeadline ? format === "square" ? 85 : 92 : 74;
+    const drawTemplateLabel = (value: string, background: string, foreground: string, baseline: number) => {
+      const label = value.trim().toUpperCase();
+      if (!label) return;
+      context.font = "700 19px DM Sans, sans-serif";
+      const labelWidth = context.measureText(label).width;
+      context.fillStyle = background;
+      context.fillRect(72, baseline - 31, labelWidth + 32, 42);
+      context.fillStyle = foreground;
+      context.fillText(label, 88, baseline - 3);
+    };
+    if (template === "quote") {
+      context.fillStyle = colors.accent;
+      context.font = "700 156px Georgia, serif";
+      context.fillText("“", 70, height * 0.3);
+    }
     if (template === "spotlight") {
-      context.fillStyle = toRgba(palette.ink, 0.84);
+      context.fillStyle = toRgba(colors.overlay, 0.84);
       context.fillRect(48, height * 0.46, width - 96, height * 0.36);
-      context.strokeStyle = palette.accent;
+      context.strokeStyle = colors.accent;
       context.lineWidth = 3;
       context.strokeRect(48, height * 0.46, width - 96, height * 0.36);
+      if (hasPostText(spotlightLabel)) drawTemplateLabel(spotlightLabel, colors.label, colors.overlay, height * 0.515);
     }
     if (template === "frame") {
-      context.strokeStyle = toRgba(palette.text, 0.88);
+      context.strokeStyle = toRgba(colors.accent, 0.88);
       context.lineWidth = 8;
       context.strokeRect(26, 26, width - 52, height - 52);
+      if (hasPostText(frameLabel)) drawTemplateLabel(frameLabel, colors.label, colors.headline, height * 0.49);
     }
     if (template === "bulletin") {
-      context.fillStyle = toRgba(palette.accent, 0.96);
+      context.fillStyle = toRgba(colors.accent, 0.96);
       context.fillRect(0, height * 0.72, width, height * 0.28);
-      context.fillStyle = palette.ink;
+      context.fillStyle = colors.overlay;
       context.font = "700 46px Oswald, sans-serif";
       if (hasPostText(bulletinNumber)) context.fillText(bulletinNumber.trim(), 72, height * 0.79);
     }
+    if (template === "breaking" && hasPostText(breakingLabel)) drawTemplateLabel(breakingLabel, colors.label, colors.headline, height * 0.489);
+    if (template === "feature" && hasPostText(featureLabel)) drawTemplateLabel(featureLabel, colors.label, colors.overlay, height * 0.489);
     if (template === "signal") {
-      context.fillStyle = palette.signal;
-      context.fillRect(72, height * 0.46, 172, 42);
-      context.font = "700 19px DM Sans, sans-serif";
-      context.fillStyle = palette.text;
-      if (hasPostText(signalLabel)) context.fillText(signalLabel.trim().toUpperCase(), 88, height * 0.489);
+      if (hasPostText(signalLabel)) drawTemplateLabel(signalLabel, colors.label, colors.headline, height * 0.489);
     }
-    context.fillStyle = palette.accent;
+    context.fillStyle = colors.accent;
     context.fillRect(72, height * 0.55, 86, 9);
     const customSinhalaFamily = customSinhalaFont ? `"${customSinhalaFont.family}", ` : "";
     context.font = isSinhalaHeadline ? `${customSinhalaFont ? 400 : 800} ${headlineSize}px ${customSinhalaFamily}"Abhaya Libre", "Noto Sans Sinhala", serif` : `700 ${headlineSize}px Oswald, sans-serif`;
@@ -458,13 +500,13 @@ export default function Home() {
     lines.forEach((line, lineIndex) => {
       let x = 72;
       line.forEach((token) => {
-        context.fillStyle = token.highlighted ? "#F6C400" : palette.text;
+        context.fillStyle = token.highlighted ? colors.highlight : colors.headline;
         context.fillText(token.value, x, height * 0.63 + lineIndex * lineHeight);
         x += context.measureText(token.value).width;
       });
     });
     if (hasPostText(badge) || hasPostText(pageName)) {
-      context.strokeStyle = palette.accent;
+      context.strokeStyle = colors.accent;
       context.lineWidth = 5;
       context.beginPath();
       context.moveTo(72, height - 148);
@@ -472,14 +514,48 @@ export default function Home() {
       context.stroke();
       context.font = "700 28px DM Sans, sans-serif";
       if (hasPostText(badge)) {
-        context.fillStyle = palette.accent;
+        context.fillStyle = colors.badge;
         context.fillText(badge.trim().toUpperCase(), 72, height - 94);
       }
       if (hasPostText(pageName)) {
-        context.fillStyle = palette.text;
+        context.fillStyle = colors.page;
         context.textAlign = "right";
         context.fillText(pageName.trim().toUpperCase(), width - 72, height - 94);
         context.textAlign = "left";
+      }
+    }
+    if (template === "poll" && (hasPostText(heartLabel) || hasPostText(thumbLabel))) {
+      const reactionY = height - 46;
+      context.font = "700 23px Oswald, sans-serif";
+      let reactionX = 72;
+      if (hasPostText(heartLabel)) {
+        context.fillStyle = colors.heart;
+        context.beginPath();
+        context.arc(reactionX + 10, reactionY - 8, 11, 0, Math.PI * 2);
+        context.fill();
+        context.fillStyle = colors.headline;
+        context.font = "700 16px Arial, sans-serif";
+        context.fillText("♥", reactionX + 4.6, reactionY - 2.5);
+        context.font = "700 23px Oswald, sans-serif";
+        context.fillText(heartLabel.trim().toUpperCase(), reactionX + 29, reactionY);
+        reactionX += 29 + context.measureText(heartLabel.trim().toUpperCase()).width + 26;
+      }
+      if (hasPostText(thumbLabel)) {
+        context.strokeStyle = toRgba(colors.headline, 0.42);
+        context.lineWidth = 2;
+        context.beginPath();
+        context.moveTo(reactionX - 14, reactionY - 24);
+        context.lineTo(reactionX - 14, reactionY + 2);
+        context.stroke();
+        context.fillStyle = colors.thumb;
+        context.beginPath();
+        context.arc(reactionX + 10, reactionY - 8, 11, 0, Math.PI * 2);
+        context.fill();
+        context.fillStyle = colors.headline;
+        context.font = "700 13px Arial, sans-serif";
+        context.fillText("●", reactionX + 6.2, reactionY - 3.4);
+        context.font = "700 23px Oswald, sans-serif";
+        context.fillText(thumbLabel.trim().toUpperCase(), reactionX + 29, reactionY);
       }
     }
 
@@ -613,10 +689,20 @@ export default function Home() {
             <div className="color-scheme-panel">
               <p className="color-scheme-title"><Palette size={14} /> Post color scheme <span>Changes artwork accents and export</span></p>
               <div className="color-scheme-grid">
-                {postColorSchemes.map((scheme) => <button type="button" key={scheme.id} className={`color-scheme-choice ${colorScheme === scheme.id ? "selected" : ""}`} onClick={() => setColorScheme(scheme.id)}>
+                {postColorSchemes.map((scheme) => <button type="button" key={scheme.id} className={`color-scheme-choice ${colorScheme === scheme.id ? "selected" : ""}`} onClick={() => selectColorScheme(scheme)}>
                   <span className="scheme-swatch" style={{ background: `linear-gradient(135deg, ${scheme.ink} 0 52%, ${scheme.accent} 52% 78%, ${scheme.signal} 78% 100%)` }}></span>
                   <span><strong>{scheme.label}</strong><small>{scheme.detail}</small></span>
                 </button>)}
+              </div>
+            </div>
+            <div className="element-color-panel">
+              <div className="element-color-heading"><p><SlidersHorizontal size={14} /> Element colors <span>{hasCustomColors ? "Custom overrides active" : "Using selected scheme"}</span></p><button type="button" className="text-action" onClick={resetElementColors}>Reset to scheme</button></div>
+              <div className="element-color-grid">
+                {elementColorControls.map((control) => <label className="element-color-control" key={control.key}>
+                  <span><i style={{ backgroundColor: elementColors[control.key] }}></i><strong>{control.label}</strong><small>{control.detail}</small></span>
+                  <input type="color" aria-label={`Choose ${control.label} color`} value={elementColors[control.key]} onChange={(event) => changeElementColor(control.key, event.target.value)} />
+                  <code>{elementColors[control.key].toUpperCase()}</code>
+                </label>)}
               </div>
             </div>
             <div className="preset-panel">
@@ -656,8 +742,8 @@ export default function Home() {
         <aside className="preview-column" aria-label="Live Facebook post preview">
           <div className="preview-topline"><span>LIVE PREVIEW</span><span className="preview-status"><i></i> SAVED LOCALLY</span></div>
           <div className="preview-stage">
-            <div className={`post-art ${format === "portrait" ? "portrait" : "square"} template-${template} scheme-${colorScheme}`} style={{ "--post-ink": selectedColorScheme.ink, "--post-accent": selectedColorScheme.accent, "--post-signal": selectedColorScheme.signal, "--post-text": selectedColorScheme.text } as CSSProperties}>
-              <div className="post-photo" style={{ backgroundImage: `linear-gradient(to bottom, ${toRgba(selectedColorScheme.ink, 0)} 20%, ${toRgba(selectedColorScheme.ink, contrast / 100)} 66%, ${selectedColorScheme.ink} 88%), url(${selectedImage})` }}></div>
+            <div className={`post-art ${format === "portrait" ? "portrait" : "square"} template-${template} scheme-${colorScheme}`} style={{ "--post-ink": elementColors.overlay, "--post-accent": elementColors.accent, "--post-signal": elementColors.label, "--post-text": elementColors.headline, "--post-highlight": elementColors.highlight, "--post-badge": elementColors.badge, "--post-page": elementColors.page, "--post-heart": elementColors.heart, "--post-thumb": elementColors.thumb } as CSSProperties}>
+              <div className="post-photo" style={{ backgroundImage: `linear-gradient(to bottom, ${toRgba(elementColors.overlay, 0)} 20%, ${toRgba(elementColors.overlay, contrast / 100)} 66%, ${elementColors.overlay} 88%), url(${selectedImage})` }}></div>
               <div className="post-grain"></div>
               <div className="post-content">
                 {template === "breaking" && hasPostText(breakingLabel) && <span className="breaking-label">{breakingLabel}</span>}
