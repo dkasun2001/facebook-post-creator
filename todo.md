@@ -26,3 +26,6 @@
 - [x] Add manual model-ID inputs for Gemini headline and image generation.
 - [x] Pass valid typed model IDs through the secure server-side generation procedures with safe defaults retained.
 - [x] Verify manual model entry, fallback behavior, and the updated project version. Both headline and image fields retain typed model IDs; unit coverage confirms blank fields use defaults and typed models prepend to the fallback chain; type, test, and production checks pass.
+- [x] Add a curated color-scheme selector for post artwork.
+- [x] Apply selected colors to the live preview, template accents, metadata, reactions, and PNG export.
+- [x] Verify multiple schemes at desktop and mobile widths, then checkpoint the update. Ruby selection updated live accent and signal values, mobile layout remains responsive, and the Ruby PNG export path completed with the selected palette active.
