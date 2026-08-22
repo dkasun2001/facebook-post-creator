@@ -143,6 +143,7 @@ button:disabled { cursor: wait; opacity: 0.72; }
 .font-upload-actions { display: flex; align-items: center; gap: 10px; margin-top: 9px; }
 .font-upload-actions .outline-button { padding: 8px 10px; font-size: 10px; }
 .font-upload-actions p { margin: 0; color: #7e8590; font-size: 9px; line-height: 1.35; }
+.font-warning { margin: 9px 0 0; padding: 8px 9px; border: 1px solid rgba(239,95,95,0.33); border-radius: 6px; color: #ffb4b4; background: rgba(239,95,95,0.07); font-size: 10px; line-height: 1.45; }
 
 .visual-source-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .image-choice, .upload-choice { position: relative; min-height: 95px; overflow: hidden; border: 1px solid rgba(255,255,255,0.12); border-radius: 7px; color: #fff; background: #0a0e15; text-align: left; transition: transform 160ms var(--ease-out), border-color 160ms var(--ease-out); }

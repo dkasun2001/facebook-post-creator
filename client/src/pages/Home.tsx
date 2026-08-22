@@ -22,11 +22,13 @@ import {
   WandSparkles,
   X,
 } from "lucide-react";
+import { parse as parseFont } from "opentype.js";
 import { toast } from "sonner";
 
 type Language = "english" | "sinhala";
 type Template = "poll" | "breaking" | "quote" | "feature";
 type Format = "square" | "portrait";
+type CustomSinhalaFont = { family: string; name: string };
 
 const generatedImages = [
   "/manus-storage/soori-morning-railway_b9770c94.jpg",
@@ -105,6 +107,16 @@ function wrapCanvasText(context: CanvasRenderingContext2D, value: string, maxWid
   return lines;
 }
 
+function supportsUnicodeSinhala(font: any) {
+  const glyphCount = font?.glyphs?.length ?? 0;
+  for (let index = 0; index < glyphCount; index += 1) {
+    const glyph = font.glyphs.get(index);
+    const codepoints = glyph?.unicodes ?? (typeof glyph?.unicode === "number" ? [glyph.unicode] : []);
+    if (codepoints.some((codepoint: number) => codepoint >= 0x0d80 && codepoint <= 0x0dff)) return true;
+  }
+  return false;
+}
+
 export default function Home() {
   const [expanded, setExpanded] = useState("story");
   const [language, setLanguage] = useState<Language>("english");
@@ -118,8 +130,9 @@ export default function Home() {
   const [pageName, setPageName] = useState("Soori Daily");
   const [contrast, setContrast] = useState(46);
   const [exporting, setExporting] = useState(false);
-  const [customSinhalaFont, setCustomSinhalaFont] = useState<{ family: string; name: string } | null>(null);
+  const [customSinhalaFont, setCustomSinhalaFont] = useState<CustomSinhalaFont | null>(null);
   const [fontLoading, setFontLoading] = useState(false);
+  const [fontIssue, setFontIssue] = useState<string | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const fontInput = useRef<HTMLInputElement>(null);
 
@@ -189,16 +202,36 @@ export default function Home() {
     }
 
     const family = `SooriSinhala${Date.now()}`;
-    const fontUrl = URL.createObjectURL(chosen);
     setFontLoading(true);
     try {
-      const fontFace = new FontFace(family, `url(${fontUrl})`);
+      const fontBuffer = await chosen.arrayBuffer();
+      let fontName = chosen.name.replace(/\.[^/.]+$/, "");
+      let unicodeCheckPassed = true;
+
+      if (extension !== "woff2") {
+        try {
+          const parsedFont = parseFont(fontBuffer.slice(0));
+          fontName = parsedFont?.names?.fontFamily?.en ?? parsedFont?.names?.fullName?.en ?? fontName;
+          unicodeCheckPassed = supportsUnicodeSinhala(parsedFont);
+        } catch {
+          // The browser remains the final authority for successfully loading uncommon but valid font files.
+        }
+      }
+
+      if (!unicodeCheckPassed) {
+        const message = `${fontName} is a legacy non-Unicode Sinhala font. It cannot render the Unicode Sinhala text used by this studio. Use a Unicode Sinhala font instead.`;
+        setFontIssue(message);
+        toast.error("This legacy font cannot render Unicode Sinhala text.");
+        return;
+      }
+
+      const fontFace = new FontFace(family, fontBuffer, { style: "normal", weight: "400" });
       const loadedFont = await fontFace.load();
       document.fonts.add(loadedFont);
-      setCustomSinhalaFont({ family, name: chosen.name.replace(/\.[^/.]+$/, "") });
-      toast.success(`${chosen.name} is ready for Sinhala headlines.`);
+      setCustomSinhalaFont({ family, name: fontName });
+      setFontIssue(null);
+      toast.success(`${fontName} is ready for Sinhala headlines.`);
     } catch {
-      URL.revokeObjectURL(fontUrl);
       toast.error("That font could not be loaded. Try a web-ready Sinhala font file.");
     } finally {
       setFontLoading(false);
@@ -208,6 +241,7 @@ export default function Home() {
 
   const resetSinhalaFont = () => {
     setCustomSinhalaFont(null);
+    setFontIssue(null);
     toast.message("Reverted to the built-in viral Sinhala font.");
   };
 
@@ -271,7 +305,7 @@ export default function Home() {
     context.fillRect(72, height * 0.55, 86, 9);
     const customSinhalaFamily = customSinhalaFont ? `"${customSinhalaFont.family}", ` : "";
     context.font = isSinhalaHeadline
-      ? `800 ${headlineSize}px ${customSinhalaFamily}"Abhaya Libre", "Noto Sans Sinhala", serif`
+      ? `${customSinhalaFont ? 400 : 800} ${headlineSize}px ${customSinhalaFamily}"Abhaya Libre", "Noto Sans Sinhala", serif`
       : `700 ${headlineSize}px Oswald, sans-serif`;
     context.fillStyle = "#FFFFFF";
     context.textAlign = "left";
@@ -367,8 +401,9 @@ export default function Home() {
               </div>
               <div className="font-upload-actions">
                 <button type="button" className="outline-button" onClick={() => fontInput.current?.click()} disabled={fontLoading}>{fontLoading ? <LoaderCircle className="spin" size={15} /> : <Upload size={15} />}{fontLoading ? "Loading font…" : "Upload Sinhala font"}</button>
-                <p>TTF, OTF, WOFF, or WOFF2 · applies to Sinhala preview and PNG export in this browser session.</p>
+                <p>TTF, OTF, WOFF, or WOFF2 · must support Unicode Sinhala · applies in this browser session.</p>
               </div>
+              {fontIssue && <p className="font-warning" role="alert">{fontIssue}</p>}
               <input ref={fontInput} type="file" accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2" hidden onChange={uploadSinhalaFont} />
             </div>
           </StepCard>
@@ -428,7 +463,7 @@ export default function Home() {
                 {template === "quote" && <span className="quote-mark">“</span>}
                 {template === "feature" && <span className="feature-label">FIELD NOTE · SRI LANKA</span>}
                 <div className="headline-rule"></div>
-                <h2 className={language === "sinhala" ? "sinhala-headline" : ""} style={language === "sinhala" && customSinhalaFont ? { fontFamily: `"${customSinhalaFont.family}", "Abhaya Libre", "Noto Sans Sinhala", serif` } : undefined}>{selectedHeadline || "Your headline goes here"}</h2>
+                <h2 className={language === "sinhala" ? "sinhala-headline" : ""} style={language === "sinhala" && customSinhalaFont ? { fontFamily: `"${customSinhalaFont.family}", "Abhaya Libre", "Noto Sans Sinhala", serif`, fontWeight: 400, letterSpacing: "-0.02em" } : undefined}>{selectedHeadline || "Your headline goes here"}</h2>
                 {template !== "feature" && <p className="post-deck">A clear angle for the conversation people are already having.</p>}
                 <div className="post-bottom">
                   <span className="post-badge">{badge || "POST BRIEF"}</span>

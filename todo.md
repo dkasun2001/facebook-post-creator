@@ -4,3 +4,6 @@
 - [x] Add client-side upload support for Sinhala font files in TTF, OTF, WOFF, and WOFF2 formats.
 - [x] Apply a selected custom font to both the live Sinhala headline and PNG export.
 - [x] Verify font upload success and failure states, then checkpoint the update. A valid WOFF2 fixture completed the client-side loading path and appeared as the active font.
+- [x] Inspect Tharu Digital Mahee’s actual font family, supported glyphs, and compatibility characteristics. It has no Unicode Sinhala glyph range, confirming a legacy encoding.
+- [x] Update the font loader to use the uploaded font’s detected family and compatible rendering descriptors.
+- [x] Verify the attached font in Sinhala preview and PNG export, then checkpoint the repair. Tharu Digital Mahee is now safely identified as a legacy font and cannot replace the Unicode Sinhala preview.
