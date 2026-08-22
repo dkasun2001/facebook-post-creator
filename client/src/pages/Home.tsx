@@ -37,6 +37,7 @@ import { templateData, type Template } from "./templateConfig";
 import { hasPostText } from "./postMetadata";
 import { postColorSchemes, toRgba, type PostColorScheme } from "./colorSchemes";
 import { readGeminiApiKey, writeGeminiApiKey } from "./geminiKeyStorage";
+import { buildRelevantImagePrompt } from "./imagePrompt";
 import { parsePostPresets, POST_PRESETS_STORAGE_KEY, type PostPreset } from "./postPresets";
 import { colorsFromScheme, elementColorControls, setElementColor, type PostElementColorKey, type PostElementColors } from "./postElementColors";
 
@@ -266,6 +267,12 @@ export default function Home() {
     const prompt = `Read this ${language === "sinhala" ? "Sinhala" : "English"} news story and write four concise Facebook-image headlines. Keep them factual, high-contrast, and under 12 words. STORY: ${story || "[Paste your news description here]"}`;
     await navigator.clipboard.writeText(prompt);
     toast.success("Writing prompt copied to your clipboard.");
+  };
+
+  const copyImagePrompt = async () => {
+    const prompt = buildRelevantImagePrompt({ story, headline: selectedHeadline, language, format });
+    await navigator.clipboard.writeText(prompt);
+    toast.success("Relevant AI image prompt copied to your clipboard.");
   };
 
   const uploadImage = (event: ChangeEvent<HTMLInputElement>) => {
@@ -665,6 +672,7 @@ export default function Home() {
             <div className="drop-strip" onClick={() => fileInput.current?.click()} role="button" tabIndex={0} onKeyDown={(event) => { if (event.key === "Enter") fileInput.current?.click(); }}>
               <ImagePlus size={18} /><span><strong>Drop a picture here</strong><small>JPG, PNG, WEBP — crop stays live in the preview</small></span>
             </div>
+            <div className="image-prompt-panel"><div><Sparkles size={16} /><span><strong>Need an AI-generated image?</strong><small>Copy a relevant, text-free editorial prompt for your preferred AI image tool.</small></span></div><button className="outline-button" type="button" onClick={copyImagePrompt}><Copy size={15} /> Copy AI image prompt</button></div>
             <div className="range-row"><span>Headline shade</span><input aria-label="Headline contrast shade" type="range" min="25" max="80" value={contrast} onChange={(event) => setContrast(Number(event.target.value))} /></div>
           </StepCard>
 

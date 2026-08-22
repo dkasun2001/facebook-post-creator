@@ -38,3 +38,6 @@
 - [x] Persist the user-provided Gemini API key only in this browser and clarify how it can be removed.
 - [x] Remove the Gemini AI image-generation interface and related unused client workflow while retaining image upload and headline generation.
 - [x] Verify browser-only key persistence, removal of image-generation controls, and core editor checks before checkpointing. A saved key restored after reload; the visible remove action cleared the browser entry; no image-generation UI remained; TypeScript, 20 tests, and build passed.
+- [x] Generate a relevant editorial AI-image prompt from the current news brief and selected headline.
+- [x] Add a copy control beside image sources without reintroducing image generation into the studio.
+- [x] Verify prompt quality, clipboard behavior, responsive layout, and checks before checkpointing. The relevant story, headline, format, and no-text rule were verified in the controlled copy call; TypeScript, 22 tests, and build passed.
