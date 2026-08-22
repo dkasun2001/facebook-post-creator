@@ -12,6 +12,15 @@ type GeminiImagePayload = {
   mime_type?: string;
 };
 
+export const DEFAULT_HEADLINE_MODELS = ["gemini-3.7-flash", "gemini-2.5-flash"];
+export const DEFAULT_IMAGE_MODELS = ["gemini-3.1-flash-image", "gemini-2.5-flash-image"];
+
+export function resolveModelCandidates(customModel: string | undefined, defaults: string[]) {
+  const model = customModel?.trim();
+  if (!model) return defaults;
+  return [model, ...defaults.filter((item) => item !== model)];
+}
+
 function tidyJson(value: string) {
   return value.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
 }
@@ -130,15 +139,15 @@ async function geminiInteractionWithFallback(apiKey: string, models: string[], b
   throw lastError instanceof Error ? lastError : new Error("Gemini could not complete that request.");
 }
 
-export async function generateGeminiHeadlines(input: { apiKey: string; story: string; language: GenerationLanguage }) {
-  const payload = await geminiInteractionWithFallback(input.apiKey, ["gemini-3.7-flash", "gemini-2.5-flash"], {
+export async function generateGeminiHeadlines(input: { apiKey: string; story: string; language: GenerationLanguage; model?: string }) {
+  const payload = await geminiInteractionWithFallback(input.apiKey, resolveModelCandidates(input.model, DEFAULT_HEADLINE_MODELS), {
     input: createHeadlinePrompt(input.story, input.language),
   });
   return parseHeadlineOutput(readTextOutput(payload));
 }
 
-export async function generateGeminiImage(input: { apiKey: string; story: string; headline: string; language: GenerationLanguage; format: PostFormat }) {
-  const payload = await geminiInteractionWithFallback(input.apiKey, ["gemini-3.1-flash-image", "gemini-2.5-flash-image"], {
+export async function generateGeminiImage(input: { apiKey: string; story: string; headline: string; language: GenerationLanguage; format: PostFormat; model?: string }) {
+  const payload = await geminiInteractionWithFallback(input.apiKey, resolveModelCandidates(input.model, DEFAULT_IMAGE_MODELS), {
     input: [{ type: "text", text: createImagePrompt(input.story, input.headline, input.language) }],
     response_format: {
       type: "image",

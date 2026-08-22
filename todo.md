@@ -23,3 +23,6 @@
 - [x] Hide empty badge and page-name fields from live post previews and PNG exports.
 - [x] Add editable fields for every template-specific visible label and accent.
 - [x] Verify editable metadata across templates, then checkpoint the update. Blank badge and page-name fields remove the metadata row; all template-specific controls appear when selected; the Signal label updates live; and a Quick bulletin PNG export completed with global metadata blank.
+- [x] Add manual model-ID inputs for Gemini headline and image generation.
+- [x] Pass valid typed model IDs through the secure server-side generation procedures with safe defaults retained.
+- [x] Verify manual model entry, fallback behavior, and the updated project version. Both headline and image fields retain typed model IDs; unit coverage confirms blank fields use defaults and typed models prepend to the fallback chain; type, test, and production checks pass.

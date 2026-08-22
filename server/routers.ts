@@ -8,6 +8,7 @@ import { publicProcedure, router } from "./_core/trpc";
 
 const geminiKeySchema = z.string().trim().min(20).max(512);
 const generationLanguageSchema = z.enum(["english", "sinhala"]);
+const geminiModelSchema = z.string().trim().regex(/^gemini-[a-z0-9.-]+$/i, "Enter a Gemini model ID beginning with gemini-").max(120).optional();
 
 export function geminiErrorMessage(error: unknown) {
   const rawMessage = error instanceof Error ? error.message : "Gemini could not complete that request.";
@@ -41,7 +42,7 @@ export const appRouter = router({
   }),
   gemini: router({
     generateHeadlines: publicProcedure
-      .input(z.object({ apiKey: geminiKeySchema, story: z.string().trim().min(12).max(4000), language: generationLanguageSchema }))
+      .input(z.object({ apiKey: geminiKeySchema, story: z.string().trim().min(12).max(4000), language: generationLanguageSchema, model: geminiModelSchema }))
       .mutation(async ({ input }) => {
         try {
           const headlines = await generateGeminiHeadlines(input);
@@ -51,7 +52,7 @@ export const appRouter = router({
         }
       }),
     generateImage: publicProcedure
-      .input(z.object({ apiKey: geminiKeySchema, story: z.string().trim().min(12).max(4000), headline: z.string().trim().min(4).max(300), language: generationLanguageSchema, format: z.enum(["square", "portrait"]) }))
+      .input(z.object({ apiKey: geminiKeySchema, story: z.string().trim().min(12).max(4000), headline: z.string().trim().min(4).max(300), language: generationLanguageSchema, format: z.enum(["square", "portrait"]), model: geminiModelSchema }))
       .mutation(async ({ input }) => {
         try {
           return await generateGeminiImage(input);

@@ -178,6 +178,8 @@ export default function Home() {
   const [contrast, setContrast] = useState(46);
   const [yellowWordsInput, setYellowWordsInput] = useState("");
   const [geminiApiKey, setGeminiApiKey] = useState("");
+  const [headlineModel, setHeadlineModel] = useState("");
+  const [imageModel, setImageModel] = useState("");
   const [showGeminiApiKey, setShowGeminiApiKey] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [customSinhalaFont, setCustomSinhalaFont] = useState<CustomSinhalaFont | null>(null);
@@ -226,7 +228,7 @@ export default function Home() {
       toast.error("Add your Gemini API key to generate AI headlines.");
       return;
     }
-    headlineGeneration.mutate({ apiKey: geminiApiKey.trim(), story, language });
+    headlineGeneration.mutate({ apiKey: geminiApiKey.trim(), story, language, model: headlineModel.trim() || undefined });
   };
 
   const generateRelevantImage = () => {
@@ -238,7 +240,7 @@ export default function Home() {
       toast.error("Add your Gemini API key to generate an image.");
       return;
     }
-    imageGeneration.mutate({ apiKey: geminiApiKey.trim(), story, headline: selectedHeadline, language, format });
+    imageGeneration.mutate({ apiKey: geminiApiKey.trim(), story, headline: selectedHeadline, language, format, model: imageModel.trim() || undefined });
   };
 
   const copyPrompt = async () => {
@@ -493,6 +495,11 @@ export default function Home() {
               <div className="gemini-heading"><div><KeyRound size={16} /><span><strong>Gemini AI connection</strong><small>{geminiApiKey ? "Key ready for this session" : "Add your own Google Gemini API key"}</small></span></div><a href="https://aistudio.google.com/apikey" target="_blank" rel="noreferrer">Get a key</a></div>
               <label className="gemini-key-label" htmlFor="gemini-api-key">Google Gemini API key</label>
               <div className="gemini-key-input"><input id="gemini-api-key" className="text-input" type={showGeminiApiKey ? "text" : "password"} autoComplete="off" value={geminiApiKey} onChange={(event) => setGeminiApiKey(event.target.value)} placeholder="AIza…" /><button type="button" aria-label={showGeminiApiKey ? "Hide API key" : "Show API key"} onClick={() => setShowGeminiApiKey((visible) => !visible)}>{showGeminiApiKey ? <EyeOff size={15} /> : <Eye size={15} />}</button></div>
+              <div className="gemini-model-grid">
+                <label>Headline model<input className="text-input" value={headlineModel} onChange={(event) => setHeadlineModel(event.target.value)} placeholder="gemini-3.7-flash (default)" spellCheck={false} /></label>
+                <label>Image model<input className="text-input" value={imageModel} onChange={(event) => setImageModel(event.target.value)} placeholder="gemini-3.1-flash-image (default)" spellCheck={false} /></label>
+              </div>
+              <p className="gemini-model-help">Type any supported <code>gemini-…</code> model ID. Leave either blank to use the studio default and its safe fallback.</p>
               <p><KeyRound size={12} /> Your key is sent only to the server for the current request. It is never saved in this post, your browser, or the project database.</p>
             </div>
             <div className="story-actions">
