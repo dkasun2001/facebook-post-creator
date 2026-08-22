@@ -20,3 +20,6 @@
 - [x] Add a curated set of additional post templates with distinct information hierarchy and visual treatment.
 - [x] Preserve highlighted words, Sinhala typography, reactions, and current metadata across every template.
 - [x] Verify the expanded template gallery at desktop and mobile widths, then checkpoint the update. Eight layouts render in the gallery, and Spotlight selection correctly updates the live preview while preserving core post metadata.
+- [x] Hide empty badge and page-name fields from live post previews and PNG exports.
+- [x] Add editable fields for every template-specific visible label and accent.
+- [x] Verify editable metadata across templates, then checkpoint the update. Blank badge and page-name fields remove the metadata row; all template-specific controls appear when selected; the Signal label updates live; and a Quick bulletin PNG export completed with global metadata blank.

@@ -29,6 +29,7 @@ import { parse as parseFont } from "opentype.js";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { templateData, type Template } from "./templateConfig";
+import { hasPostText } from "./postMetadata";
 
 type Language = "english" | "sinhala";
 type Format = "square" | "portrait";
@@ -166,6 +167,14 @@ export default function Home() {
   const [format, setFormat] = useState<Format>("square");
   const [badge, setBadge] = useState("POST BRIEF");
   const [pageName, setPageName] = useState("Soori Daily");
+  const [breakingLabel, setBreakingLabel] = useState("BREAKING NOTE");
+  const [featureLabel, setFeatureLabel] = useState("FIELD NOTE · SRI LANKA");
+  const [signalLabel, setSignalLabel] = useState("DEVELOPING STORY");
+  const [spotlightLabel, setSpotlightLabel] = useState("THE KEY POINT");
+  const [frameLabel, setFrameLabel] = useState("PHOTO ESSAY");
+  const [bulletinNumber, setBulletinNumber] = useState("01");
+  const [heartLabel, setHeartLabel] = useState("YES");
+  const [thumbLabel, setThumbLabel] = useState("NO");
   const [contrast, setContrast] = useState(46);
   const [yellowWordsInput, setYellowWordsInput] = useState("");
   const [geminiApiKey, setGeminiApiKey] = useState("");
@@ -384,14 +393,14 @@ export default function Home() {
       context.fillRect(0, height * 0.72, width, height * 0.28);
       context.fillStyle = "#101117";
       context.font = "700 46px Oswald, sans-serif";
-      context.fillText("01", 72, height * 0.79);
+      if (hasPostText(bulletinNumber)) context.fillText(bulletinNumber.trim(), 72, height * 0.79);
     }
     if (template === "signal") {
       context.fillStyle = "#e94750";
       context.fillRect(72, height * 0.46, 172, 42);
       context.font = "700 19px DM Sans, sans-serif";
       context.fillStyle = "#ffffff";
-      context.fillText("DEVELOPING", 88, height * 0.489);
+      if (hasPostText(signalLabel)) context.fillText(signalLabel.trim().toUpperCase(), 88, height * 0.489);
     }
     context.fillStyle = "#F6C400";
     context.fillRect(72, height * 0.55, 86, 9);
@@ -412,17 +421,25 @@ export default function Home() {
         x += context.measureText(token.value).width;
       });
     });
-    context.strokeStyle = "#F6C400";
-    context.lineWidth = 5;
-    context.beginPath();
-    context.moveTo(72, height - 148);
-    context.lineTo(width - 72, height - 148);
-    context.stroke();
-    context.font = "700 28px DM Sans, sans-serif";
-    context.fillStyle = "#F6C400";
-    context.fillText(badge.toUpperCase(), 72, height - 94);
-    context.fillStyle = "#FFFFFF";
-    context.fillText(pageName.toUpperCase(), width - 270, height - 94);
+    if (hasPostText(badge) || hasPostText(pageName)) {
+      context.strokeStyle = "#F6C400";
+      context.lineWidth = 5;
+      context.beginPath();
+      context.moveTo(72, height - 148);
+      context.lineTo(width - 72, height - 148);
+      context.stroke();
+      context.font = "700 28px DM Sans, sans-serif";
+      if (hasPostText(badge)) {
+        context.fillStyle = "#F6C400";
+        context.fillText(badge.trim().toUpperCase(), 72, height - 94);
+      }
+      if (hasPostText(pageName)) {
+        context.fillStyle = "#FFFFFF";
+        context.textAlign = "right";
+        context.fillText(pageName.trim().toUpperCase(), width - 72, height - 94);
+        context.textAlign = "left";
+      }
+    }
 
     canvas.toBlob((blob) => {
       if (!blob) return;
@@ -547,8 +564,18 @@ export default function Home() {
               ))}
             </div>
             <div className="metadata-grid">
-              <label>Badge / kicker<input className="text-input" value={badge} onChange={(event) => setBadge(event.target.value)} /></label>
-              <label>Page name<input className="text-input" value={pageName} onChange={(event) => setPageName(event.target.value)} /></label>
+              <label>Badge / kicker<input className="text-input" value={badge} onChange={(event) => setBadge(event.target.value)} placeholder="Leave blank to hide" /></label>
+              <label>Page name<input className="text-input" value={pageName} onChange={(event) => setPageName(event.target.value)} placeholder="Leave blank to hide" /></label>
+            </div>
+            <div className="template-controls">
+              <p className="template-controls-title">Editable template items <span>Leave any field blank to hide it</span></p>
+              {template === "poll" && <div className="metadata-grid"><label>Heart label<input className="text-input" value={heartLabel} onChange={(event) => setHeartLabel(event.target.value)} placeholder="Leave blank to hide" /></label><label>Thumb label<input className="text-input" value={thumbLabel} onChange={(event) => setThumbLabel(event.target.value)} placeholder="Leave blank to hide" /></label></div>}
+              {template === "breaking" && <label className="template-control-field">Breaking label<input className="text-input" value={breakingLabel} onChange={(event) => setBreakingLabel(event.target.value)} placeholder="Leave blank to hide" /></label>}
+              {template === "feature" && <label className="template-control-field">Feature label<input className="text-input" value={featureLabel} onChange={(event) => setFeatureLabel(event.target.value)} placeholder="Leave blank to hide" /></label>}
+              {template === "signal" && <label className="template-control-field">Signal label<input className="text-input" value={signalLabel} onChange={(event) => setSignalLabel(event.target.value)} placeholder="Leave blank to hide" /></label>}
+              {template === "spotlight" && <label className="template-control-field">Spotlight label<input className="text-input" value={spotlightLabel} onChange={(event) => setSpotlightLabel(event.target.value)} placeholder="Leave blank to hide" /></label>}
+              {template === "frame" && <label className="template-control-field">Frame label<input className="text-input" value={frameLabel} onChange={(event) => setFrameLabel(event.target.value)} placeholder="Leave blank to hide" /></label>}
+              {template === "bulletin" && <label className="template-control-field">Bulletin number<input className="text-input" value={bulletinNumber} onChange={(event) => setBulletinNumber(event.target.value)} placeholder="Leave blank to hide" /></label>}
             </div>
           </StepCard>
 
@@ -568,20 +595,20 @@ export default function Home() {
               <div className="post-photo" style={{ backgroundImage: `linear-gradient(to bottom, rgba(3, 12, 25, 0) 20%, rgba(9, 19, 35, ${contrast / 100}) 66%, #091323 88%), url(${selectedImage})` }}></div>
               <div className="post-grain"></div>
               <div className="post-content">
-                {template === "breaking" && <span className="breaking-label">BREAKING NOTE</span>}
+                {template === "breaking" && hasPostText(breakingLabel) && <span className="breaking-label">{breakingLabel}</span>}
                 {template === "quote" && <span className="quote-mark">“</span>}
-                {template === "feature" && <span className="feature-label">FIELD NOTE · SRI LANKA</span>}
-                {template === "signal" && <span className="signal-label">DEVELOPING STORY</span>}
-                {template === "spotlight" && <span className="spotlight-label">THE KEY POINT</span>}
-                {template === "bulletin" && <span className="bulletin-number">01</span>}
-                {template === "frame" && <span className="frame-label">PHOTO ESSAY</span>}
+                {template === "feature" && hasPostText(featureLabel) && <span className="feature-label">{featureLabel}</span>}
+                {template === "signal" && hasPostText(signalLabel) && <span className="signal-label">{signalLabel}</span>}
+                {template === "spotlight" && hasPostText(spotlightLabel) && <span className="spotlight-label">{spotlightLabel}</span>}
+                {template === "bulletin" && hasPostText(bulletinNumber) && <span className="bulletin-number">{bulletinNumber}</span>}
+                {template === "frame" && hasPostText(frameLabel) && <span className="frame-label">{frameLabel}</span>}
                 <div className="headline-rule"></div>
                 <h2 className={language === "sinhala" ? "sinhala-headline" : ""} style={language === "sinhala" && customSinhalaFont ? { fontFamily: `"${customSinhalaFont.family}", "Abhaya Libre", "Noto Sans Sinhala", serif`, fontWeight: 400, letterSpacing: "-0.02em" } : undefined}>{splitHeadlineForHighlight(selectedHeadline || "Your headline goes here", selectedYellowWords(yellowWordsInput)).map((segment, index) => <span className={segment.highlighted ? "headline-yellow" : undefined} key={`${segment.value}-${index}`}>{segment.value}</span>)}</h2>
-                <div className="post-bottom">
-                  <span className="post-badge">{badge || "POST BRIEF"}</span>
-                  <span className="post-page">{pageName || "SOORI DAILY"}</span>
-                </div>
-                {template === "poll" && <div className="reaction-row"><span className="react yes">♥</span><b>YES</b><i></i><span className="react no">●</span><b>NO</b></div>}
+                {(hasPostText(badge) || hasPostText(pageName)) && <div className="post-bottom">
+                  {hasPostText(badge) && <span className="post-badge">{badge}</span>}
+                  {hasPostText(pageName) && <span className="post-page">{pageName}</span>}
+                </div>}
+                {template === "poll" && (hasPostText(heartLabel) || hasPostText(thumbLabel)) && <div className="reaction-row">{hasPostText(heartLabel) && <><span className="react yes">♥</span><b>{heartLabel}</b></>}{hasPostText(heartLabel) && hasPostText(thumbLabel) && <i></i>}{hasPostText(thumbLabel) && <><span className="react no">●</span><b>{thumbLabel}</b></>}</div>}
               </div>
             </div>
           </div>

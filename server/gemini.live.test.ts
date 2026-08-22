@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import { generateGeminiHeadlines } from "./gemini";
 
 describe("Gemini live headline generation", () => {
-  it("returns four concise English headline options", async () => {
+  const liveIt = process.env.RUN_LIVE_GEMINI_TESTS === "true" ? it : it.skip;
+
+  liveIt("returns four concise English headline options", async () => {
     const apiKey = process.env.GEMINI_API_KEY;
     expect(apiKey, "GEMINI_API_KEY must be configured for live verification").toBeTruthy();
 
