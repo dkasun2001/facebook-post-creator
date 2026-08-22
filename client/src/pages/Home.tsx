@@ -464,7 +464,6 @@ export default function Home() {
                 {template === "feature" && <span className="feature-label">FIELD NOTE · SRI LANKA</span>}
                 <div className="headline-rule"></div>
                 <h2 className={language === "sinhala" ? "sinhala-headline" : ""} style={language === "sinhala" && customSinhalaFont ? { fontFamily: `"${customSinhalaFont.family}", "Abhaya Libre", "Noto Sans Sinhala", serif`, fontWeight: 400, letterSpacing: "-0.02em" } : undefined}>{selectedHeadline || "Your headline goes here"}</h2>
-                {template !== "feature" && <p className="post-deck">A clear angle for the conversation people are already having.</p>}
                 <div className="post-bottom">
                   <span className="post-badge">{badge || "POST BRIEF"}</span>
                   <span className="post-page">{pageName || "SOORI DAILY"}</span>
