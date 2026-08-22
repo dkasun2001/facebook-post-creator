@@ -2,9 +2,11 @@
  * Soori Post Studio — Editorial Control Room
  * A reference-led production rail uses concise numbered steps and a focused live post plate.
  */
-import { ChangeEvent, CSSProperties, ReactNode, useMemo, useRef, useState } from "react";
+import { ChangeEvent, CSSProperties, ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowDownToLine,
+  Bookmark,
+  BookmarkPlus,
   Check,
   ChevronDown,
   CircleHelp,
@@ -21,6 +23,7 @@ import {
   Plus,
   RotateCcw,
   Sparkles,
+  Trash2,
   Type,
   Upload,
   WandSparkles,
@@ -32,6 +35,7 @@ import { trpc } from "@/lib/trpc";
 import { templateData, type Template } from "./templateConfig";
 import { hasPostText } from "./postMetadata";
 import { postColorSchemes, toRgba, type PostColorScheme } from "./colorSchemes";
+import { parsePostPresets, POST_PRESETS_STORAGE_KEY, type PostPreset } from "./postPresets";
 
 type Language = "english" | "sinhala";
 type Format = "square" | "portrait";
@@ -167,6 +171,9 @@ export default function Home() {
   const [selectedImage, setSelectedImage] = useState(generatedImages[0]);
   const [template, setTemplate] = useState<Template>("poll");
   const [colorScheme, setColorScheme] = useState<PostColorScheme["id"]>("navy");
+  const [presets, setPresets] = useState<PostPreset[]>([]);
+  const [presetName, setPresetName] = useState("");
+  const [presetsReady, setPresetsReady] = useState(false);
   const [format, setFormat] = useState<Format>("square");
   const [badge, setBadge] = useState("POST BRIEF");
   const [pageName, setPageName] = useState("Soori Daily");
@@ -199,6 +206,15 @@ export default function Home() {
     () => postColorSchemes.find((scheme) => scheme.id === colorScheme) ?? postColorSchemes[0],
     [colorScheme],
   );
+
+  useEffect(() => {
+    setPresets(parsePostPresets(window.localStorage.getItem(POST_PRESETS_STORAGE_KEY)));
+    setPresetsReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (presetsReady) window.localStorage.setItem(POST_PRESETS_STORAGE_KEY, JSON.stringify(presets));
+  }, [presets, presetsReady]);
 
   const headlineGeneration = trpc.gemini.generateHeadlines.useMutation({
     onSuccess: ({ headlines: generated }) => {
@@ -327,6 +343,29 @@ export default function Home() {
     setCustomSinhalaFont(null);
     setFontIssue(null);
     toast.message("Reverted to the built-in viral Sinhala font.");
+  };
+
+  const savePreset = () => {
+    const name = presetName.trim();
+    if (!name) return toast.error("Give this preset a short name first.");
+    if (name.length > 40) return toast.error("Keep preset names under 40 characters.");
+    if (presets.some((preset) => preset.name.toLocaleLowerCase() === name.toLocaleLowerCase())) return toast.error("A preset with that name already exists.");
+    const id = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `preset-${Date.now()}`;
+    setPresets((current) => [...current, { id, name, template, colorScheme }]);
+    setPresetName("");
+    toast.success(`Saved ${name} to this device.`);
+  };
+
+  const applyPreset = (preset: PostPreset) => {
+    setTemplate(preset.template);
+    setColorScheme(preset.colorScheme);
+    setExpanded("template");
+    toast.success(`Applied ${preset.name}.`);
+  };
+
+  const removePreset = (id: string) => {
+    setPresets((current) => current.filter((preset) => preset.id !== id));
+    toast.message("Preset removed from this device.");
   };
 
   const startFresh = () => {
@@ -579,6 +618,15 @@ export default function Home() {
                   <span><strong>{scheme.label}</strong><small>{scheme.detail}</small></span>
                 </button>)}
               </div>
+            </div>
+            <div className="preset-panel">
+              <p className="preset-title"><Bookmark size={14} /> Your saved presets <span>Stored only on this device</span></p>
+              <div className="preset-save-row"><input className="text-input" value={presetName} onChange={(event) => setPresetName(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") savePreset(); }} placeholder="Name this template + color pair" maxLength={40} /><button className="outline-button" type="button" onClick={savePreset}><BookmarkPlus size={14} /> Save current</button></div>
+              {presets.length > 0 ? <div className="preset-list">{presets.map((preset) => {
+                const scheme = postColorSchemes.find((item) => item.id === preset.colorScheme) ?? postColorSchemes[0];
+                const presetTemplate = templateData.find((item) => item.id === preset.template) ?? templateData[0];
+                return <div className="preset-item" key={preset.id}><button type="button" className="preset-apply" onClick={() => applyPreset(preset)}><i style={{ background: `linear-gradient(135deg, ${scheme.ink} 0 55%, ${scheme.accent} 55% 100%)` }}></i><span><strong>{preset.name}</strong><small>{presetTemplate.label} · {scheme.label}</small></span></button><button type="button" className="preset-remove" aria-label={`Remove ${preset.name}`} onClick={() => removePreset(preset.id)}><Trash2 size={14} /></button></div>;
+              })}</div> : <p className="preset-empty">Save the current template and color combination to reuse it later.</p>}
             </div>
             <div className="metadata-grid">
               <label>Badge / kicker<input className="text-input" value={badge} onChange={(event) => setBadge(event.target.value)} placeholder="Leave blank to hide" /></label>

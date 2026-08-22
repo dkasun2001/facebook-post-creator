@@ -29,3 +29,6 @@
 - [x] Add a curated color-scheme selector for post artwork.
 - [x] Apply selected colors to the live preview, template accents, metadata, reactions, and PNG export.
 - [x] Verify multiple schemes at desktop and mobile widths, then checkpoint the update. Ruby selection updated live accent and signal values, mobile layout remains responsive, and the Ruby PNG export path completed with the selected palette active.
+- [x] Add named local presets for favorite template and color-scheme combinations.
+- [x] Add preset save, apply, and remove controls in the template editor.
+- [x] Verify preset persistence and correct template/palette application, then checkpoint the update. A Ruby Signal preset persisted across reload, reapplied its Signal/Ruby combination after a change, and removed cleanly from both UI and local storage.
