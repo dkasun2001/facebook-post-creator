@@ -214,13 +214,24 @@ export default function Home() {
     shade.addColorStop(1, "#091323");
     context.fillStyle = shade;
     context.fillRect(0, 0, width, height);
+    await document.fonts.ready;
+    const isSinhalaHeadline = language === "sinhala";
+    const headlineSize = isSinhalaHeadline
+      ? format === "square" ? 72 : 78
+      : format === "square" ? 65 : 72;
+    const lineHeight = isSinhalaHeadline
+      ? format === "square" ? 85 : 92
+      : 74;
     context.fillStyle = "#F6C400";
     context.fillRect(72, height * 0.55, 86, 9);
-    context.font = `700 ${format === "square" ? 65 : 72}px Oswald, sans-serif`;
+    context.font = isSinhalaHeadline
+      ? `800 ${headlineSize}px "Abhaya Libre", "Noto Sans Sinhala", serif`
+      : `700 ${headlineSize}px Oswald, sans-serif`;
     context.fillStyle = "#FFFFFF";
     context.textAlign = "left";
-    const lines = wrapCanvasText(context, selectedHeadline.toUpperCase(), width - 144).slice(0, 5);
-    lines.forEach((line, index) => context.fillText(line, 72, height * 0.63 + index * 74));
+    const exportHeadline = isSinhalaHeadline ? selectedHeadline : selectedHeadline.toUpperCase();
+    const lines = wrapCanvasText(context, exportHeadline, width - 144).slice(0, 5);
+    lines.forEach((line, index) => context.fillText(line, 72, height * 0.63 + index * lineHeight));
     context.strokeStyle = "#F6C400";
     context.lineWidth = 5;
     context.beginPath();

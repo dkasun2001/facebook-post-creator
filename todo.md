@@ -1,0 +1,3 @@
+- [x] Select and load a bolder Sinhala display typeface for viral-style Facebook headlines.
+- [x] Apply the display typeface to Sinhala post previews while preserving UI readability.
+- [x] Verify the updated preview at desktop and mobile widths, then checkpoint the change. The Sinhala preview now uses Abhaya Libre with high-contrast display styling; English remains Oswald.
