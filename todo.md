@@ -35,3 +35,6 @@
 - [x] Add accessible per-element color controls for core artwork layers and template accents.
 - [x] Apply custom colors to live preview, all supported templates, and PNG export drawing.
 - [x] Verify color overrides and reset behavior, then checkpoint the update. Nine labeled native controls update individual CSS variables; reset returns to the selected scheme; type checks, 18 tests, build, mobile layout, and a customized poll PNG download were verified.
+- [x] Persist the user-provided Gemini API key only in this browser and clarify how it can be removed.
+- [x] Remove the Gemini AI image-generation interface and related unused client workflow while retaining image upload and headline generation.
+- [x] Verify browser-only key persistence, removal of image-generation controls, and core editor checks before checkpointing. A saved key restored after reload; the visible remove action cleared the browser entry; no image-generation UI remained; TypeScript, 20 tests, and build passed.

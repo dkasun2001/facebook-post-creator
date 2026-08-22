@@ -36,6 +36,7 @@ import { trpc } from "@/lib/trpc";
 import { templateData, type Template } from "./templateConfig";
 import { hasPostText } from "./postMetadata";
 import { postColorSchemes, toRgba, type PostColorScheme } from "./colorSchemes";
+import { readGeminiApiKey, writeGeminiApiKey } from "./geminiKeyStorage";
 import { parsePostPresets, POST_PRESETS_STORAGE_KEY, type PostPreset } from "./postPresets";
 import { colorsFromScheme, elementColorControls, setElementColor, type PostElementColorKey, type PostElementColors } from "./postElementColors";
 
@@ -192,8 +193,8 @@ export default function Home() {
   const [contrast, setContrast] = useState(46);
   const [yellowWordsInput, setYellowWordsInput] = useState("");
   const [geminiApiKey, setGeminiApiKey] = useState("");
+  const [geminiKeyReady, setGeminiKeyReady] = useState(false);
   const [headlineModel, setHeadlineModel] = useState("");
-  const [imageModel, setImageModel] = useState("");
   const [showGeminiApiKey, setShowGeminiApiKey] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [customSinhalaFont, setCustomSinhalaFont] = useState<CustomSinhalaFont | null>(null);
@@ -214,11 +215,17 @@ export default function Home() {
   useEffect(() => {
     setPresets(parsePostPresets(window.localStorage.getItem(POST_PRESETS_STORAGE_KEY)));
     setPresetsReady(true);
+    setGeminiApiKey(readGeminiApiKey(window.localStorage));
+    setGeminiKeyReady(true);
   }, []);
 
   useEffect(() => {
     if (presetsReady) window.localStorage.setItem(POST_PRESETS_STORAGE_KEY, JSON.stringify(presets));
   }, [presets, presetsReady]);
+
+  useEffect(() => {
+    if (geminiKeyReady) writeGeminiApiKey(window.localStorage, geminiApiKey);
+  }, [geminiApiKey, geminiKeyReady]);
 
   const headlineGeneration = trpc.gemini.generateHeadlines.useMutation({
     onSuccess: ({ headlines: generated }) => {
@@ -228,15 +235,6 @@ export default function Home() {
       toast.success("Gemini created four SEO-focused headline angles.");
     },
     onError: (error) => toast.error(error.message || "Gemini could not generate headlines."),
-  });
-
-  const imageGeneration = trpc.gemini.generateImage.useMutation({
-    onSuccess: ({ url }) => {
-      setSelectedImage(url);
-      setExpanded("template");
-      toast.success("Gemini created a relevant editorial image for your post.");
-    },
-    onError: (error) => toast.error(error.message || "Gemini could not generate an image."),
   });
 
   const changeLanguage = (next: Language) => {
@@ -258,16 +256,10 @@ export default function Home() {
     headlineGeneration.mutate({ apiKey: geminiApiKey.trim(), story, language, model: headlineModel.trim() || undefined });
   };
 
-  const generateRelevantImage = () => {
-    if (story.trim().length < 12) {
-      toast.error("Add a news description before generating an image.");
-      return;
-    }
-    if (!geminiApiKey.trim()) {
-      toast.error("Add your Gemini API key to generate an image.");
-      return;
-    }
-    imageGeneration.mutate({ apiKey: geminiApiKey.trim(), story, headline: selectedHeadline, language, format, model: imageModel.trim() || undefined });
+  const clearGeminiApiKey = () => {
+    setGeminiApiKey("");
+    setShowGeminiApiKey(false);
+    toast.message("Gemini key removed from this browser.");
   };
 
   const copyPrompt = async () => {
@@ -608,15 +600,15 @@ export default function Home() {
             <div className="field-heading"><label htmlFor="story">What happened?</label><span>{story.length}/650</span></div>
             <textarea id="story" className="story-area" value={story} maxLength={650} onChange={(event) => setStory(event.target.value)} placeholder={language === "sinhala" ? "කෙටියෙන් කතාව ලියන්න. සිංහල හෝ ඉංග්‍රීසි ඕනෑම භාෂාවක් භාවිතා කළ හැක." : "Paste the news text. Sinhala or English both work — the headlines stay in your chosen language."} />
             <div className={`gemini-panel ${geminiApiKey ? "is-ready" : ""}`}>
-              <div className="gemini-heading"><div><KeyRound size={16} /><span><strong>Gemini AI connection</strong><small>{geminiApiKey ? "Key ready for this session" : "Add your own Google Gemini API key"}</small></span></div><a href="https://aistudio.google.com/apikey" target="_blank" rel="noreferrer">Get a key</a></div>
+              <div className="gemini-heading"><div><KeyRound size={16} /><span><strong>Gemini AI connection</strong><small>{geminiApiKey ? "Key saved in this browser" : "Add your own Google Gemini API key"}</small></span></div><a href="https://aistudio.google.com/apikey" target="_blank" rel="noreferrer">Get a key</a></div>
               <label className="gemini-key-label" htmlFor="gemini-api-key">Google Gemini API key</label>
               <div className="gemini-key-input"><input id="gemini-api-key" className="text-input" type={showGeminiApiKey ? "text" : "password"} autoComplete="off" value={geminiApiKey} onChange={(event) => setGeminiApiKey(event.target.value)} placeholder="AIza…" /><button type="button" aria-label={showGeminiApiKey ? "Hide API key" : "Show API key"} onClick={() => setShowGeminiApiKey((visible) => !visible)}>{showGeminiApiKey ? <EyeOff size={15} /> : <Eye size={15} />}</button></div>
-              <div className="gemini-model-grid">
+              <div className="gemini-model-grid single">
                 <label>Headline model<input className="text-input" value={headlineModel} onChange={(event) => setHeadlineModel(event.target.value)} placeholder="gemini-3.7-flash (default)" spellCheck={false} /></label>
-                <label>Image model<input className="text-input" value={imageModel} onChange={(event) => setImageModel(event.target.value)} placeholder="gemini-3.1-flash-image (default)" spellCheck={false} /></label>
               </div>
-              <p className="gemini-model-help">Type any supported <code>gemini-…</code> model ID. Leave either blank to use the studio default and its safe fallback.</p>
-              <p><KeyRound size={12} /> Your key is sent only to the server for the current request. It is never saved in this post, your browser, or the project database.</p>
+              <p className="gemini-model-help">Type any supported <code>gemini-…</code> headline model ID. Leave it blank to use the studio default and its safe fallback.</p>
+              <p><KeyRound size={12} /> Your key is saved only in this browser. It is sent to the server only for headline requests and is never stored in this post or the project database.</p>
+              {geminiApiKey && <button className="text-action gemini-key-remove" type="button" onClick={clearGeminiApiKey}>Remove key from this browser</button>}
             </div>
             <div className="story-actions">
               <button className="signal-button" type="button" onClick={generateHeadlines} disabled={headlineGeneration.isPending}>{headlineGeneration.isPending ? <LoaderCircle className="spin" size={16} /> : <WandSparkles size={16} />}{headlineGeneration.isPending ? "Gemini is writing…" : "Generate 4 headlines"}</button>
@@ -673,7 +665,6 @@ export default function Home() {
             <div className="drop-strip" onClick={() => fileInput.current?.click()} role="button" tabIndex={0} onKeyDown={(event) => { if (event.key === "Enter") fileInput.current?.click(); }}>
               <ImagePlus size={18} /><span><strong>Drop a picture here</strong><small>JPG, PNG, WEBP — crop stays live in the preview</small></span>
             </div>
-            <div className="ai-image-panel"><div><span className="ai-image-spark">✦</span><span><strong>Generate relevant image with Gemini</strong><small>Creates a text-free editorial photo with lower-space for your headline overlay.</small></span></div><button className="outline-button" type="button" onClick={generateRelevantImage} disabled={imageGeneration.isPending}>{imageGeneration.isPending ? <LoaderCircle className="spin" size={15} /> : <WandSparkles size={15} />}{imageGeneration.isPending ? "Creating image…" : "Generate image"}</button></div>
             <div className="range-row"><span>Headline shade</span><input aria-label="Headline contrast shade" type="range" min="25" max="80" value={contrast} onChange={(event) => setContrast(Number(event.target.value))} /></div>
           </StepCard>
 
