@@ -130,6 +130,7 @@ button:disabled { cursor: wait; opacity: 0.72; }
 .headline-option svg { color: var(--yellow); }
 .inline-label { display: block; margin: 13px 0 6px; }
 .text-input { height: 39px; padding: 0 10px; font-size: 12px; }
+.headline-yellow { color: var(--yellow); }
 .font-upload-panel { margin-top: 12px; padding: 11px; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; background: linear-gradient(135deg, rgba(246,196,0,0.035), rgba(255,255,255,0.018)); transition: border-color 160ms var(--ease-out), background 160ms var(--ease-out); }
 .font-upload-panel.is-ready { border-color: rgba(246,196,0,0.6); background: linear-gradient(135deg, rgba(246,196,0,0.09), rgba(255,255,255,0.018)); }
 .font-upload-heading, .font-upload-heading > div { display: flex; align-items: center; }

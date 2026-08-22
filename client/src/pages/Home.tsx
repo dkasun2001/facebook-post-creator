@@ -107,6 +107,47 @@ function wrapCanvasText(context: CanvasRenderingContext2D, value: string, maxWid
   return lines;
 }
 
+function selectedYellowWords(value: string) {
+  return value.split(/[;,\n]+/).map((word) => word.trim()).filter(Boolean);
+}
+
+function escapeRegex(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function splitHeadlineForHighlight(headline: string, words: string[]) {
+  if (!words.length) return [{ value: headline, highlighted: false }];
+  const escapedWords = words.sort((a, b) => b.length - a.length).map(escapeRegex).join("|");
+  const expression = new RegExp(`(?<![\\p{L}\\p{N}])(${escapedWords})(?![\\p{L}\\p{N}])`, "giu");
+  return headline.split(expression).filter(Boolean).map((value) => ({
+    value,
+    highlighted: words.some((word) => word.toLocaleLowerCase() === value.toLocaleLowerCase()),
+  }));
+}
+
+function wrapHighlightedCanvasText(context: CanvasRenderingContext2D, headline: string, words: string[], maxWidth: number) {
+  const tokens = splitHeadlineForHighlight(headline, words).flatMap((segment) =>
+    segment.value.split(/(\s+)/).filter(Boolean).map((value) => ({ value, highlighted: segment.highlighted })),
+  );
+  const lines: Array<Array<{ value: string; highlighted: boolean }>> = [];
+  let line: Array<{ value: string; highlighted: boolean }> = [];
+  let lineWidth = 0;
+
+  tokens.forEach((token) => {
+    const tokenWidth = context.measureText(token.value).width;
+    if (line.length && !/^\s+$/.test(token.value) && lineWidth + tokenWidth > maxWidth) {
+      lines.push(line);
+      line = [];
+      lineWidth = 0;
+    }
+    if (!line.length && /^\s+$/.test(token.value)) return;
+    line.push(token);
+    lineWidth += tokenWidth;
+  });
+  if (line.length) lines.push(line);
+  return lines;
+}
+
 function supportsUnicodeSinhala(font: any) {
   const glyphCount = font?.glyphs?.length ?? 0;
   for (let index = 0; index < glyphCount; index += 1) {
@@ -129,6 +170,7 @@ export default function Home() {
   const [badge, setBadge] = useState("POST BRIEF");
   const [pageName, setPageName] = useState("Soori Daily");
   const [contrast, setContrast] = useState(46);
+  const [yellowWordsInput, setYellowWordsInput] = useState("");
   const [exporting, setExporting] = useState(false);
   const [customSinhalaFont, setCustomSinhalaFont] = useState<CustomSinhalaFont | null>(null);
   const [fontLoading, setFontLoading] = useState(false);
@@ -310,8 +352,16 @@ export default function Home() {
     context.fillStyle = "#FFFFFF";
     context.textAlign = "left";
     const exportHeadline = isSinhalaHeadline ? selectedHeadline : selectedHeadline.toUpperCase();
-    const lines = wrapCanvasText(context, exportHeadline, width - 144).slice(0, 5);
-    lines.forEach((line, index) => context.fillText(line, 72, height * 0.63 + index * lineHeight));
+    const yellowWords = selectedYellowWords(yellowWordsInput);
+    const lines = wrapHighlightedCanvasText(context, exportHeadline, yellowWords, width - 144).slice(0, 5);
+    lines.forEach((line, lineIndex) => {
+      let x = 72;
+      line.forEach((token) => {
+        context.fillStyle = token.highlighted ? "#F6C400" : "#FFFFFF";
+        context.fillText(token.value, x, height * 0.63 + lineIndex * lineHeight);
+        x += context.measureText(token.value).width;
+      });
+    });
     context.strokeStyle = "#F6C400";
     context.lineWidth = 5;
     context.beginPath();
@@ -394,6 +444,8 @@ export default function Home() {
             </div>
             <label className="inline-label" htmlFor="custom-headline">Or edit the chosen headline</label>
             <input id="custom-headline" className="text-input" value={selectedHeadline} onChange={(event) => setSelectedHeadline(event.target.value)} />
+            <div className="field-heading"><label htmlFor="yellow-words">Words in yellow</label><span>Separate terms with commas</span></div>
+            <input id="yellow-words" className="text-input" value={yellowWordsInput} onChange={(event) => setYellowWordsInput(event.target.value)} placeholder="e.g. life, five questions" />
             <div className={`font-upload-panel ${customSinhalaFont ? "is-ready" : ""}`}>
               <div className="font-upload-heading">
                 <div><Type size={16} /><span><strong>Sinhala headline font</strong><small>{customSinhalaFont ? `${customSinhalaFont.name} is active` : "Viral Sinhala · Abhaya Libre is active"}</small></span></div>
@@ -463,7 +515,7 @@ export default function Home() {
                 {template === "quote" && <span className="quote-mark">“</span>}
                 {template === "feature" && <span className="feature-label">FIELD NOTE · SRI LANKA</span>}
                 <div className="headline-rule"></div>
-                <h2 className={language === "sinhala" ? "sinhala-headline" : ""} style={language === "sinhala" && customSinhalaFont ? { fontFamily: `"${customSinhalaFont.family}", "Abhaya Libre", "Noto Sans Sinhala", serif`, fontWeight: 400, letterSpacing: "-0.02em" } : undefined}>{selectedHeadline || "Your headline goes here"}</h2>
+                <h2 className={language === "sinhala" ? "sinhala-headline" : ""} style={language === "sinhala" && customSinhalaFont ? { fontFamily: `"${customSinhalaFont.family}", "Abhaya Libre", "Noto Sans Sinhala", serif`, fontWeight: 400, letterSpacing: "-0.02em" } : undefined}>{splitHeadlineForHighlight(selectedHeadline || "Your headline goes here", selectedYellowWords(yellowWordsInput)).map((segment, index) => <span className={segment.highlighted ? "headline-yellow" : undefined} key={`${segment.value}-${index}`}>{segment.value}</span>)}</h2>
                 <div className="post-bottom">
                   <span className="post-badge">{badge || "POST BRIEF"}</span>
                   <span className="post-page">{pageName || "SOORI DAILY"}</span>

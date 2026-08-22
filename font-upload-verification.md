@@ -13,3 +13,7 @@ The custom font remained visibly active in Sinhala preview mode. A corrupt WOFF2
 For the Tharu Digital Mahee repair verification, the custom-font input was exposed temporarily in the test browser. It correctly retains the expected TTF, OTF, WOFF, and WOFF2 accept filter.
 
 The attached `tharu_digital_mahee.ttf` was submitted through the repaired handler. The app correctly rejected it as a legacy non-Unicode font and retained the built-in Unicode Sinhala fallback, preventing incorrect glyph rendering.
+
+The Words in Yellow control is present in the headline editor and accepts comma-separated terms for live headline highlighting verification.
+
+Using the selected terms `country, here` produced exactly the matching live preview highlight spans, confirming the text matching and yellow rendering behavior.
