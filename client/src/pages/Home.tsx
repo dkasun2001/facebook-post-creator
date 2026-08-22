@@ -17,8 +17,10 @@ import {
   Plus,
   RotateCcw,
   Sparkles,
+  Type,
   Upload,
   WandSparkles,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -116,7 +118,10 @@ export default function Home() {
   const [pageName, setPageName] = useState("Soori Daily");
   const [contrast, setContrast] = useState(46);
   const [exporting, setExporting] = useState(false);
+  const [customSinhalaFont, setCustomSinhalaFont] = useState<{ family: string; name: string } | null>(null);
+  const [fontLoading, setFontLoading] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
+  const fontInput = useRef<HTMLInputElement>(null);
 
   const selectedTemplate = useMemo(
     () => templateData.find((item) => item.id === template) ?? templateData[0],
@@ -164,6 +169,46 @@ export default function Home() {
       toast.success(`${chosen.name} is now on the post canvas.`);
     };
     reader.readAsDataURL(chosen);
+  };
+
+  const uploadSinhalaFont = async (event: ChangeEvent<HTMLInputElement>) => {
+    const chosen = event.target.files?.[0];
+    if (!chosen) return;
+
+    const extension = chosen.name.split(".").pop()?.toLowerCase();
+    if (!extension || !["ttf", "otf", "woff", "woff2"].includes(extension)) {
+      toast.error("Choose a TTF, OTF, WOFF, or WOFF2 font file.");
+      event.target.value = "";
+      return;
+    }
+
+    if (chosen.size > 15 * 1024 * 1024) {
+      toast.error("Please choose a font file smaller than 15 MB.");
+      event.target.value = "";
+      return;
+    }
+
+    const family = `SooriSinhala${Date.now()}`;
+    const fontUrl = URL.createObjectURL(chosen);
+    setFontLoading(true);
+    try {
+      const fontFace = new FontFace(family, `url(${fontUrl})`);
+      const loadedFont = await fontFace.load();
+      document.fonts.add(loadedFont);
+      setCustomSinhalaFont({ family, name: chosen.name.replace(/\.[^/.]+$/, "") });
+      toast.success(`${chosen.name} is ready for Sinhala headlines.`);
+    } catch {
+      URL.revokeObjectURL(fontUrl);
+      toast.error("That font could not be loaded. Try a web-ready Sinhala font file.");
+    } finally {
+      setFontLoading(false);
+      event.target.value = "";
+    }
+  };
+
+  const resetSinhalaFont = () => {
+    setCustomSinhalaFont(null);
+    toast.message("Reverted to the built-in viral Sinhala font.");
   };
 
   const startFresh = () => {
@@ -224,8 +269,9 @@ export default function Home() {
       : 74;
     context.fillStyle = "#F6C400";
     context.fillRect(72, height * 0.55, 86, 9);
+    const customSinhalaFamily = customSinhalaFont ? `"${customSinhalaFont.family}", ` : "";
     context.font = isSinhalaHeadline
-      ? `800 ${headlineSize}px "Abhaya Libre", "Noto Sans Sinhala", serif`
+      ? `800 ${headlineSize}px ${customSinhalaFamily}"Abhaya Libre", "Noto Sans Sinhala", serif`
       : `700 ${headlineSize}px Oswald, sans-serif`;
     context.fillStyle = "#FFFFFF";
     context.textAlign = "left";
@@ -314,6 +360,17 @@ export default function Home() {
             </div>
             <label className="inline-label" htmlFor="custom-headline">Or edit the chosen headline</label>
             <input id="custom-headline" className="text-input" value={selectedHeadline} onChange={(event) => setSelectedHeadline(event.target.value)} />
+            <div className={`font-upload-panel ${customSinhalaFont ? "is-ready" : ""}`}>
+              <div className="font-upload-heading">
+                <div><Type size={16} /><span><strong>Sinhala headline font</strong><small>{customSinhalaFont ? `${customSinhalaFont.name} is active` : "Viral Sinhala · Abhaya Libre is active"}</small></span></div>
+                {customSinhalaFont && <button type="button" className="font-reset" onClick={resetSinhalaFont}><X size={13} /> Use built-in</button>}
+              </div>
+              <div className="font-upload-actions">
+                <button type="button" className="outline-button" onClick={() => fontInput.current?.click()} disabled={fontLoading}>{fontLoading ? <LoaderCircle className="spin" size={15} /> : <Upload size={15} />}{fontLoading ? "Loading font…" : "Upload Sinhala font"}</button>
+                <p>TTF, OTF, WOFF, or WOFF2 · applies to Sinhala preview and PNG export in this browser session.</p>
+              </div>
+              <input ref={fontInput} type="file" accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2" hidden onChange={uploadSinhalaFont} />
+            </div>
           </StepCard>
 
           <StepCard number={3} title="The picture" detail={selectedImage.startsWith("data") ? "Your uploaded image" : "Editorial photo selected"} open={expanded === "visual"} complete={Boolean(selectedImage)} onToggle={() => setExpanded(expanded === "visual" ? "" : "visual")}>
@@ -371,7 +428,7 @@ export default function Home() {
                 {template === "quote" && <span className="quote-mark">“</span>}
                 {template === "feature" && <span className="feature-label">FIELD NOTE · SRI LANKA</span>}
                 <div className="headline-rule"></div>
-                <h2 className={language === "sinhala" ? "sinhala-headline" : ""}>{selectedHeadline || "Your headline goes here"}</h2>
+                <h2 className={language === "sinhala" ? "sinhala-headline" : ""} style={language === "sinhala" && customSinhalaFont ? { fontFamily: `"${customSinhalaFont.family}", "Abhaya Libre", "Noto Sans Sinhala", serif` } : undefined}>{selectedHeadline || "Your headline goes here"}</h2>
                 {template !== "feature" && <p className="post-deck">A clear angle for the conversation people are already having.</p>}
                 <div className="post-bottom">
                   <span className="post-badge">{badge || "POST BRIEF"}</span>

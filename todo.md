@@ -1,3 +1,6 @@
 - [x] Select and load a bolder Sinhala display typeface for viral-style Facebook headlines.
 - [x] Apply the display typeface to Sinhala post previews while preserving UI readability.
 - [x] Verify the updated preview at desktop and mobile widths, then checkpoint the change. The Sinhala preview now uses Abhaya Libre with high-contrast display styling; English remains Oswald.
+- [x] Add client-side upload support for Sinhala font files in TTF, OTF, WOFF, and WOFF2 formats.
+- [x] Apply a selected custom font to both the live Sinhala headline and PNG export.
+- [x] Verify font upload success and failure states, then checkpoint the update. A valid WOFF2 fixture completed the client-side loading path and appeared as the active font.
