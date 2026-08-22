@@ -12,7 +12,7 @@ type GeminiImagePayload = {
   mime_type?: string;
 };
 
-export const DEFAULT_HEADLINE_MODELS = ["gemini-3.7-flash", "gemini-2.5-flash"];
+export const DEFAULT_HEADLINE_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash"];
 export const DEFAULT_IMAGE_MODELS = ["gemini-3.1-flash-image", "gemini-2.5-flash-image"];
 
 export function resolveModelCandidates(customModel: string | undefined, defaults: string[]) {
