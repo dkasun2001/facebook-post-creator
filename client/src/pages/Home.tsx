@@ -9,8 +9,11 @@ import {
   ChevronDown,
   CircleHelp,
   Copy,
+  Eye,
+  EyeOff,
   FileImage,
   ImagePlus,
+  KeyRound,
   Languages,
   LayoutPanelTop,
   LoaderCircle,
@@ -24,6 +27,7 @@ import {
 } from "lucide-react";
 import { parse as parseFont } from "opentype.js";
 import { toast } from "sonner";
+import { trpc } from "@/lib/trpc";
 
 type Language = "english" | "sinhala";
 type Template = "poll" | "breaking" | "quote" | "feature";
@@ -171,6 +175,8 @@ export default function Home() {
   const [pageName, setPageName] = useState("Soori Daily");
   const [contrast, setContrast] = useState(46);
   const [yellowWordsInput, setYellowWordsInput] = useState("");
+  const [geminiApiKey, setGeminiApiKey] = useState("");
+  const [showGeminiApiKey, setShowGeminiApiKey] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [customSinhalaFont, setCustomSinhalaFont] = useState<CustomSinhalaFont | null>(null);
   const [fontLoading, setFontLoading] = useState(false);
@@ -183,6 +189,25 @@ export default function Home() {
     [template],
   );
 
+  const headlineGeneration = trpc.gemini.generateHeadlines.useMutation({
+    onSuccess: ({ headlines: generated }) => {
+      setHeadlines(generated);
+      setSelectedHeadline(generated[0]);
+      setExpanded("headline");
+      toast.success("Gemini created four SEO-focused headline angles.");
+    },
+    onError: (error) => toast.error(error.message || "Gemini could not generate headlines."),
+  });
+
+  const imageGeneration = trpc.gemini.generateImage.useMutation({
+    onSuccess: ({ url }) => {
+      setSelectedImage(url);
+      setExpanded("template");
+      toast.success("Gemini created a relevant editorial image for your post.");
+    },
+    onError: (error) => toast.error(error.message || "Gemini could not generate an image."),
+  });
+
   const changeLanguage = (next: Language) => {
     setLanguage(next);
     const options = next === "sinhala" ? sinhalaHeadlines : englishHeadlines;
@@ -191,21 +216,27 @@ export default function Home() {
   };
 
   const generateHeadlines = () => {
-    const options = language === "sinhala" ? sinhalaHeadlines : englishHeadlines;
-    const shortTopic = story.trim().split(/\s+/).slice(0, 4).join(" ");
-    const refreshed = shortTopic
-      ? options.map((item, index) =>
-          index === 0
-            ? language === "sinhala"
-              ? `${shortTopic}: මෙය දැන් වැදගත් වෙන්නේ ඇයි?`
-              : `${shortTopic}: why this matters now`
-            : item,
-        )
-      : options;
-    setHeadlines(refreshed);
-    setSelectedHeadline(refreshed[0]);
-    setExpanded("headline");
-    toast.success("Four editorial angles are ready to choose from.");
+    if (story.trim().length < 12) {
+      toast.error("Add a little more news detail before generating headlines.");
+      return;
+    }
+    if (!geminiApiKey.trim()) {
+      toast.error("Add your Gemini API key to generate AI headlines.");
+      return;
+    }
+    headlineGeneration.mutate({ apiKey: geminiApiKey.trim(), story, language });
+  };
+
+  const generateRelevantImage = () => {
+    if (story.trim().length < 12) {
+      toast.error("Add a news description before generating an image.");
+      return;
+    }
+    if (!geminiApiKey.trim()) {
+      toast.error("Add your Gemini API key to generate an image.");
+      return;
+    }
+    imageGeneration.mutate({ apiKey: geminiApiKey.trim(), story, headline: selectedHeadline, language, format });
   };
 
   const copyPrompt = async () => {
@@ -422,8 +453,14 @@ export default function Home() {
           <StepCard number={1} title="News description" detail={story ? "Brief captured locally" : "Paste the story"} open={expanded === "story"} complete={Boolean(story)} onToggle={() => setExpanded(expanded === "story" ? "" : "story")}>
             <div className="field-heading"><label htmlFor="story">What happened?</label><span>{story.length}/650</span></div>
             <textarea id="story" className="story-area" value={story} maxLength={650} onChange={(event) => setStory(event.target.value)} placeholder={language === "sinhala" ? "කෙටියෙන් කතාව ලියන්න. සිංහල හෝ ඉංග්‍රීසි ඕනෑම භාෂාවක් භාවිතා කළ හැක." : "Paste the news text. Sinhala or English both work — the headlines stay in your chosen language."} />
+            <div className={`gemini-panel ${geminiApiKey ? "is-ready" : ""}`}>
+              <div className="gemini-heading"><div><KeyRound size={16} /><span><strong>Gemini AI connection</strong><small>{geminiApiKey ? "Key ready for this session" : "Add your own Google Gemini API key"}</small></span></div><a href="https://aistudio.google.com/apikey" target="_blank" rel="noreferrer">Get a key</a></div>
+              <label className="gemini-key-label" htmlFor="gemini-api-key">Google Gemini API key</label>
+              <div className="gemini-key-input"><input id="gemini-api-key" className="text-input" type={showGeminiApiKey ? "text" : "password"} autoComplete="off" value={geminiApiKey} onChange={(event) => setGeminiApiKey(event.target.value)} placeholder="AIza…" /><button type="button" aria-label={showGeminiApiKey ? "Hide API key" : "Show API key"} onClick={() => setShowGeminiApiKey((visible) => !visible)}>{showGeminiApiKey ? <EyeOff size={15} /> : <Eye size={15} />}</button></div>
+              <p><KeyRound size={12} /> Your key is sent only to the server for the current request. It is never saved in this post, your browser, or the project database.</p>
+            </div>
             <div className="story-actions">
-              <button className="signal-button" type="button" onClick={generateHeadlines}><WandSparkles size={16} /> Write 4 headlines</button>
+              <button className="signal-button" type="button" onClick={generateHeadlines} disabled={headlineGeneration.isPending}>{headlineGeneration.isPending ? <LoaderCircle className="spin" size={16} /> : <WandSparkles size={16} />}{headlineGeneration.isPending ? "Gemini is writing…" : "Generate 4 headlines"}</button>
               <button className="outline-button" type="button" onClick={() => setExpanded("headline")}>I’ll write my own <ChevronDown size={14} /></button>
             </div>
             <div className="copy-assist">
@@ -477,6 +514,7 @@ export default function Home() {
             <div className="drop-strip" onClick={() => fileInput.current?.click()} role="button" tabIndex={0} onKeyDown={(event) => { if (event.key === "Enter") fileInput.current?.click(); }}>
               <ImagePlus size={18} /><span><strong>Drop a picture here</strong><small>JPG, PNG, WEBP — crop stays live in the preview</small></span>
             </div>
+            <div className="ai-image-panel"><div><span className="ai-image-spark">✦</span><span><strong>Generate relevant image with Gemini</strong><small>Creates a text-free editorial photo with lower-space for your headline overlay.</small></span></div><button className="outline-button" type="button" onClick={generateRelevantImage} disabled={imageGeneration.isPending}>{imageGeneration.isPending ? <LoaderCircle className="spin" size={15} /> : <WandSparkles size={15} />}{imageGeneration.isPending ? "Creating image…" : "Generate image"}</button></div>
             <div className="range-row"><span>Headline shade</span><input aria-label="Headline contrast shade" type="range" min="25" max="80" value={contrast} onChange={(event) => setContrast(Number(event.target.value))} /></div>
           </StepCard>
 

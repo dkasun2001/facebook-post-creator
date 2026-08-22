@@ -12,3 +12,8 @@
 - [x] Add a Words in Yellow input for selected headline terms.
 - [x] Render selected words in yellow consistently in the preview and PNG export.
 - [x] Verify highlighted-word behavior and checkpoint the update. Comma-separated selected words highlight correctly in the live preview and export renderer.
+- [x] Review secure Gemini connection requirements and upgrade the static app to protect API-key use.
+- [x] Add a Gemini connection interface with an optional user API key and clear security guidance.
+- [x] Generate viral SEO headline options from a news description and let users apply one to the post.
+- [x] Generate a relevant post image from the news angle and let users apply it to the artwork.
+- [x] Verify the AI workflows, error states, and saved project version. The configured Gemini key passed a live model check and created four headlines; image quota/access responses are covered by the server error-mapping test and shown as actionable messages in the editor.
