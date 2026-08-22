@@ -17,3 +17,6 @@
 - [x] Generate viral SEO headline options from a news description and let users apply one to the post.
 - [x] Generate a relevant post image from the news angle and let users apply it to the artwork.
 - [x] Verify the AI workflows, error states, and saved project version. The configured Gemini key passed a live model check and created four headlines; image quota/access responses are covered by the server error-mapping test and shown as actionable messages in the editor.
+- [x] Add a curated set of additional post templates with distinct information hierarchy and visual treatment.
+- [x] Preserve highlighted words, Sinhala typography, reactions, and current metadata across every template.
+- [x] Verify the expanded template gallery at desktop and mobile widths, then checkpoint the update. Eight layouts render in the gallery, and Spotlight selection correctly updates the live preview while preserving core post metadata.

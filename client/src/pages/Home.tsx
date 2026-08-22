@@ -28,9 +28,9 @@ import {
 import { parse as parseFont } from "opentype.js";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import { templateData, type Template } from "./templateConfig";
 
 type Language = "english" | "sinhala";
-type Template = "poll" | "breaking" | "quote" | "feature";
 type Format = "square" | "portrait";
 type CustomSinhalaFont = { family: string; name: string };
 
@@ -51,13 +51,6 @@ const sinhalaHeadlines = [
   "අද සිදුවීම පිටුපස ඇති වැදගත් ප්‍රශ්න පහක්",
   "මේ තීරණය ඔබේ දෛනික ජීවිතයට බලපාන්නේ කොහොමද?",
   "මේ මොහොතේ අවධානය යොමු කළ යුතු කරුණ මෙන්න",
-];
-
-const templateData: Array<{ id: Template; label: string; detail: string }> = [
-  { id: "poll", label: "Poll panel", detail: "Reaction row + navy block" },
-  { id: "breaking", label: "Breaking line", detail: "Red signal + headline" },
-  { id: "quote", label: "Big question", detail: "Large quote framing" },
-  { id: "feature", label: "Feature story", detail: "Quiet label + clean type" },
 ];
 
 function StepCard({
@@ -374,6 +367,32 @@ export default function Home() {
     const lineHeight = isSinhalaHeadline
       ? format === "square" ? 85 : 92
       : 74;
+    if (template === "spotlight") {
+      context.fillStyle = "rgba(7, 10, 15, 0.84)";
+      context.fillRect(48, height * 0.46, width - 96, height * 0.36);
+      context.strokeStyle = "#F6C400";
+      context.lineWidth = 3;
+      context.strokeRect(48, height * 0.46, width - 96, height * 0.36);
+    }
+    if (template === "frame") {
+      context.strokeStyle = "rgba(255,255,255,0.88)";
+      context.lineWidth = 8;
+      context.strokeRect(26, 26, width - 52, height - 52);
+    }
+    if (template === "bulletin") {
+      context.fillStyle = "rgba(246,196,0,0.96)";
+      context.fillRect(0, height * 0.72, width, height * 0.28);
+      context.fillStyle = "#101117";
+      context.font = "700 46px Oswald, sans-serif";
+      context.fillText("01", 72, height * 0.79);
+    }
+    if (template === "signal") {
+      context.fillStyle = "#e94750";
+      context.fillRect(72, height * 0.46, 172, 42);
+      context.font = "700 19px DM Sans, sans-serif";
+      context.fillStyle = "#ffffff";
+      context.fillText("DEVELOPING", 88, height * 0.489);
+    }
     context.fillStyle = "#F6C400";
     context.fillRect(72, height * 0.55, 86, 9);
     const customSinhalaFamily = customSinhalaFont ? `"${customSinhalaFont.family}", ` : "";
@@ -552,6 +571,10 @@ export default function Home() {
                 {template === "breaking" && <span className="breaking-label">BREAKING NOTE</span>}
                 {template === "quote" && <span className="quote-mark">“</span>}
                 {template === "feature" && <span className="feature-label">FIELD NOTE · SRI LANKA</span>}
+                {template === "signal" && <span className="signal-label">DEVELOPING STORY</span>}
+                {template === "spotlight" && <span className="spotlight-label">THE KEY POINT</span>}
+                {template === "bulletin" && <span className="bulletin-number">01</span>}
+                {template === "frame" && <span className="frame-label">PHOTO ESSAY</span>}
                 <div className="headline-rule"></div>
                 <h2 className={language === "sinhala" ? "sinhala-headline" : ""} style={language === "sinhala" && customSinhalaFont ? { fontFamily: `"${customSinhalaFont.family}", "Abhaya Libre", "Noto Sans Sinhala", serif`, fontWeight: 400, letterSpacing: "-0.02em" } : undefined}>{splitHeadlineForHighlight(selectedHeadline || "Your headline goes here", selectedYellowWords(yellowWordsInput)).map((segment, index) => <span className={segment.highlighted ? "headline-yellow" : undefined} key={`${segment.value}-${index}`}>{segment.value}</span>)}</h2>
                 <div className="post-bottom">
