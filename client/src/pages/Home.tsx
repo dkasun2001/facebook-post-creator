@@ -182,7 +182,7 @@ export default function Home() {
   const [presetsReady, setPresetsReady] = useState(false);
   const [format, setFormat] = useState<Format>("square");
   const [badge, setBadge] = useState("POST BRIEF");
-  const [pageName, setPageName] = useState("Soori Daily");
+  const [pageName, setPageName] = useState("DK Daily");
   const [breakingLabel, setBreakingLabel] = useState("BREAKING NOTE");
   const [featureLabel, setFeatureLabel] = useState("FIELD NOTE · SRI LANKA");
   const [signalLabel, setSignalLabel] = useState("DEVELOPING STORY");
@@ -574,9 +574,9 @@ export default function Home() {
     <div className="studio-shell">
       <header className="studio-header">
         <div className="brand-lockup">
-          <img src="/manus-storage/soori-sunburst-mark_e75e01ee.png" alt="Soori sunburst logo" className="brand-mark" />
+          <img src="/manus-storage/soori-sunburst-mark_e75e01ee.png" alt="DK Post Studio sunburst logo" className="brand-mark" />
           <div>
-            <p className="brand-name">SOORI <span>POST STUDIO</span></p>
+            <p className="brand-name">DK <span>POST STUDIO</span></p>
             <p className="brand-tagline">News brief → headline → visual → Facebook post</p>
           </div>
         </div>
