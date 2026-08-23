@@ -1,4 +1,4 @@
-export type Template = "poll" | "breaking" | "quote" | "feature" | "signal" | "spotlight" | "frame" | "bulletin";
+export type Template = "poll" | "breaking" | "quote" | "feature" | "signal" | "spotlight" | "frame" | "bulletin" | "countdown" | "factcheck" | "watch" | "takeaway";
 
 export const templateData: Array<{ id: Template; label: string; detail: string }> = [
   { id: "poll", label: "Poll panel", detail: "Reaction row + navy block" },
@@ -9,4 +9,8 @@ export const templateData: Array<{ id: Template; label: string; detail: string }
   { id: "spotlight", label: "Spotlight", detail: "Centered key-point card" },
   { id: "frame", label: "Photo frame", detail: "Clean border + photo focus" },
   { id: "bulletin", label: "Quick bulletin", detail: "Numbered lower-third" },
+  { id: "countdown", label: "Countdown", detail: "Big number + list hook" },
+  { id: "factcheck", label: "Fact check", detail: "Verdict strip + proof point" },
+  { id: "watch", label: "Watch now", detail: "High-alert viewing cue" },
+  { id: "takeaway", label: "Key takeaway", detail: "Why-it-matters card" },
 ];

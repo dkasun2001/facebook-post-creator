@@ -40,6 +40,7 @@ import { readGeminiApiKey, writeGeminiApiKey } from "./geminiKeyStorage";
 import { buildRelevantImagePrompt } from "./imagePrompt";
 import { parsePostPresets, POST_PRESETS_STORAGE_KEY, type PostPreset } from "./postPresets";
 import { colorsFromScheme, elementColorControls, setElementColor, type PostElementColorKey, type PostElementColors } from "./postElementColors";
+import { drawViralTemplateCanvas } from "./viralTemplateCanvas";
 
 type Language = "english" | "sinhala";
 type Format = "square" | "portrait";
@@ -189,6 +190,11 @@ export default function Home() {
   const [spotlightLabel, setSpotlightLabel] = useState("THE KEY POINT");
   const [frameLabel, setFrameLabel] = useState("PHOTO ESSAY");
   const [bulletinNumber, setBulletinNumber] = useState("01");
+  const [countdownNumber, setCountdownNumber] = useState("05");
+  const [countdownLabel, setCountdownLabel] = useState("THINGS TO KNOW");
+  const [factcheckLabel, setFactcheckLabel] = useState("FACT CHECK");
+  const [watchLabel, setWatchLabel] = useState("WATCH NOW");
+  const [takeawayLabel, setTakeawayLabel] = useState("WHY IT MATTERS");
   const [heartLabel, setHeartLabel] = useState("YES");
   const [thumbLabel, setThumbLabel] = useState("NO");
   const [contrast, setContrast] = useState(46);
@@ -484,6 +490,16 @@ export default function Home() {
       context.font = "700 46px Oswald, sans-serif";
       if (hasPostText(bulletinNumber)) context.fillText(bulletinNumber.trim(), 72, height * 0.79);
     }
+    drawViralTemplateCanvas({
+      context,
+      template,
+      width,
+      height,
+      colors,
+      fields: { countdownNumber, countdownLabel, factcheckLabel, watchLabel, takeawayLabel },
+      toRgba,
+      drawTemplateLabel,
+    });
     if (template === "breaking" && hasPostText(breakingLabel)) drawTemplateLabel(breakingLabel, colors.label, colors.headline, height * 0.489);
     if (template === "feature" && hasPostText(featureLabel)) drawTemplateLabel(featureLabel, colors.label, colors.overlay, height * 0.489);
     if (template === "signal") {
@@ -727,6 +743,10 @@ export default function Home() {
               {template === "spotlight" && <label className="template-control-field">Spotlight label<input className="text-input" value={spotlightLabel} onChange={(event) => setSpotlightLabel(event.target.value)} placeholder="Leave blank to hide" /></label>}
               {template === "frame" && <label className="template-control-field">Frame label<input className="text-input" value={frameLabel} onChange={(event) => setFrameLabel(event.target.value)} placeholder="Leave blank to hide" /></label>}
               {template === "bulletin" && <label className="template-control-field">Bulletin number<input className="text-input" value={bulletinNumber} onChange={(event) => setBulletinNumber(event.target.value)} placeholder="Leave blank to hide" /></label>}
+              {template === "countdown" && <div className="metadata-grid"><label>Countdown number<input className="text-input" value={countdownNumber} onChange={(event) => setCountdownNumber(event.target.value)} placeholder="Leave blank to hide" /></label><label>Countdown label<input className="text-input" value={countdownLabel} onChange={(event) => setCountdownLabel(event.target.value)} placeholder="Leave blank to hide" /></label></div>}
+              {template === "factcheck" && <label className="template-control-field">Fact-check label<input className="text-input" value={factcheckLabel} onChange={(event) => setFactcheckLabel(event.target.value)} placeholder="Leave blank to hide" /></label>}
+              {template === "watch" && <label className="template-control-field">Watch label<input className="text-input" value={watchLabel} onChange={(event) => setWatchLabel(event.target.value)} placeholder="Leave blank to hide" /></label>}
+              {template === "takeaway" && <label className="template-control-field">Takeaway label<input className="text-input" value={takeawayLabel} onChange={(event) => setTakeawayLabel(event.target.value)} placeholder="Leave blank to hide" /></label>}
             </div>
           </StepCard>
 
@@ -753,6 +773,11 @@ export default function Home() {
                 {template === "spotlight" && hasPostText(spotlightLabel) && <span className="spotlight-label">{spotlightLabel}</span>}
                 {template === "bulletin" && hasPostText(bulletinNumber) && <span className="bulletin-number">{bulletinNumber}</span>}
                 {template === "frame" && hasPostText(frameLabel) && <span className="frame-label">{frameLabel}</span>}
+                {template === "countdown" && hasPostText(countdownNumber) && <span className="countdown-number">{countdownNumber}</span>}
+                {template === "countdown" && hasPostText(countdownLabel) && <span className="countdown-label">{countdownLabel}</span>}
+                {template === "factcheck" && hasPostText(factcheckLabel) && <span className="factcheck-label">{factcheckLabel}</span>}
+                {template === "watch" && hasPostText(watchLabel) && <span className="watch-label">{watchLabel}</span>}
+                {template === "takeaway" && hasPostText(takeawayLabel) && <span className="takeaway-label">{takeawayLabel}</span>}
                 <div className="headline-rule"></div>
                 <h2 className={language === "sinhala" ? "sinhala-headline" : ""} style={language === "sinhala" && customSinhalaFont ? { fontFamily: `"${customSinhalaFont.family}", "AF Sigiri", "Abhaya Libre", "Noto Sans Sinhala", serif`, fontWeight: 400, letterSpacing: "-0.02em" } : undefined}>{splitHeadlineForHighlight(selectedHeadline || "Your headline goes here", selectedYellowWords(yellowWordsInput)).map((segment, index) => <span className={segment.highlighted ? "headline-yellow" : undefined} key={`${segment.value}-${index}`}>{segment.value}</span>)}</h2>
                 {(hasPostText(badge) || hasPostText(pageName)) && <div className="post-bottom">

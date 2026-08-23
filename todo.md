@@ -47,3 +47,9 @@
 - [x] Validate the uploaded AFSigiri.ttf and make it the built-in default Sinhala post font.
 - [x] Apply the new built-in Sinhala font to the live preview and PNG export while retaining user font uploads.
 - [x] Verify Sinhala rendering and default-font export behavior before checkpointing. AFSigiri loaded as the computed live Sinhala font and a Sinhala PNG export completed; TypeScript, 24 tests, and build passed.
+- [x] Add several new viral, editable post templates with distinct content hierarchy and visual treatment.
+- [x] Preserve template labels, per-element color controls, AFSigiri Sinhala rendering, and current metadata across the new layouts.
+- [x] Extend the canvas PNG exporter and tests for every added template.
+- [x] Verify the expanded template gallery at desktop and mobile widths before checkpointing. Countdown controls were edited live; Fact check, Watch now, and Key takeaway labels activated correctly; a Key takeaway PNG completed; mobile showed all twelve templates in two columns; TypeScript, 25 tests, and build passed.
+- [x] Add substantive behavioral coverage for Countdown, Fact check, Watch now, and Key takeaway renderer content and editable labels. The extracted canvas renderer has direct tests for the editable labels, Countdown number, and visual geometry/colors of all four templates.
+- [x] Verify completed PNG exports for Countdown, Fact check, and Watch now, including their visible template-specific label or number. Browser history confirmed the three additional completed PNGs after each layout’s live label/number verification.
