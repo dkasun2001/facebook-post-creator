@@ -28,8 +28,7 @@ describe("Gemini post-generation helpers", () => {
   it("uses a typed model first while retaining the safe defaults as fallbacks", () => {
     expect(resolveModelCandidates("gemini-2.5-pro", DEFAULT_HEADLINE_MODELS)).toEqual([
       "gemini-2.5-pro",
-      "gemini-3.7-flash",
-      "gemini-2.5-flash",
+      ...DEFAULT_HEADLINE_MODELS,
     ]);
     expect(resolveModelCandidates("", DEFAULT_HEADLINE_MODELS)).toEqual(DEFAULT_HEADLINE_MODELS);
   });

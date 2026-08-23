@@ -44,3 +44,6 @@
 - [x] Rename visible website branding and browser metadata to DK Post Studio · Sinhala & English Facebook Posts.
 - [x] Verify the new name in the rendered interface, document title, and build before checkpointing. Browser verification confirmed the header, document title, and DK Daily default; TypeScript, 23 tests, and the production build passed.
 - [x] Replace the default visible post page name Soori Daily with DK Daily and verify it reaches the live preview and export state. The live preview now shows DK Daily, its editable Page name field defaults to DK Daily, and its PNG export completed in browser download history.
+- [x] Validate the uploaded AFSigiri.ttf and make it the built-in default Sinhala post font.
+- [x] Apply the new built-in Sinhala font to the live preview and PNG export while retaining user font uploads.
+- [x] Verify Sinhala rendering and default-font export behavior before checkpointing. AFSigiri loaded as the computed live Sinhala font and a Sinhala PNG export completed; TypeScript, 24 tests, and build passed.

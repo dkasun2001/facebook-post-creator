@@ -345,7 +345,7 @@ export default function Home() {
   const resetSinhalaFont = () => {
     setCustomSinhalaFont(null);
     setFontIssue(null);
-    toast.message("Reverted to the built-in viral Sinhala font.");
+    toast.message("Reverted to the built-in AF Sigiri font.");
   };
 
   const savePreset = () => {
@@ -445,6 +445,7 @@ export default function Home() {
     context.fillRect(0, 0, width, height);
     await document.fonts.ready;
     const isSinhalaHeadline = language === "sinhala";
+    if (isSinhalaHeadline) await document.fonts.load('400 72px "AF Sigiri"');
     const headlineSize = isSinhalaHeadline ? format === "square" ? 72 : 78 : format === "square" ? 65 : 72;
     const lineHeight = isSinhalaHeadline ? format === "square" ? 85 : 92 : 74;
     const drawTemplateLabel = (value: string, background: string, foreground: string, baseline: number) => {
@@ -490,8 +491,8 @@ export default function Home() {
     }
     context.fillStyle = colors.accent;
     context.fillRect(72, height * 0.55, 86, 9);
-    const customSinhalaFamily = customSinhalaFont ? `"${customSinhalaFont.family}", ` : "";
-    context.font = isSinhalaHeadline ? `${customSinhalaFont ? 400 : 800} ${headlineSize}px ${customSinhalaFamily}"Abhaya Libre", "Noto Sans Sinhala", serif` : `700 ${headlineSize}px Oswald, sans-serif`;
+    const sinhalaHeadlineFamily = customSinhalaFont ? `"${customSinhalaFont.family}", "AF Sigiri", "Abhaya Libre", "Noto Sans Sinhala", serif` : '"AF Sigiri", "Abhaya Libre", "Noto Sans Sinhala", serif';
+    context.font = isSinhalaHeadline ? `400 ${headlineSize}px ${sinhalaHeadlineFamily}` : `700 ${headlineSize}px Oswald, sans-serif`;
     context.textAlign = "left";
     const exportHeadline = isSinhalaHeadline ? selectedHeadline : selectedHeadline.toUpperCase();
     const yellowWords = selectedYellowWords(yellowWordsInput);
@@ -643,7 +644,7 @@ export default function Home() {
             <input id="yellow-words" className="text-input" value={yellowWordsInput} onChange={(event) => setYellowWordsInput(event.target.value)} placeholder="e.g. life, five questions" />
             <div className={`font-upload-panel ${customSinhalaFont ? "is-ready" : ""}`}>
               <div className="font-upload-heading">
-                <div><Type size={16} /><span><strong>Sinhala headline font</strong><small>{customSinhalaFont ? `${customSinhalaFont.name} is active` : "Viral Sinhala · Abhaya Libre is active"}</small></span></div>
+                <div><Type size={16} /><span><strong>Sinhala headline font</strong><small>{customSinhalaFont ? `${customSinhalaFont.name} is active` : "AF Sigiri is active by default"}</small></span></div>
                 {customSinhalaFont && <button type="button" className="font-reset" onClick={resetSinhalaFont}><X size={13} /> Use built-in</button>}
               </div>
               <div className="font-upload-actions">
@@ -753,7 +754,7 @@ export default function Home() {
                 {template === "bulletin" && hasPostText(bulletinNumber) && <span className="bulletin-number">{bulletinNumber}</span>}
                 {template === "frame" && hasPostText(frameLabel) && <span className="frame-label">{frameLabel}</span>}
                 <div className="headline-rule"></div>
-                <h2 className={language === "sinhala" ? "sinhala-headline" : ""} style={language === "sinhala" && customSinhalaFont ? { fontFamily: `"${customSinhalaFont.family}", "Abhaya Libre", "Noto Sans Sinhala", serif`, fontWeight: 400, letterSpacing: "-0.02em" } : undefined}>{splitHeadlineForHighlight(selectedHeadline || "Your headline goes here", selectedYellowWords(yellowWordsInput)).map((segment, index) => <span className={segment.highlighted ? "headline-yellow" : undefined} key={`${segment.value}-${index}`}>{segment.value}</span>)}</h2>
+                <h2 className={language === "sinhala" ? "sinhala-headline" : ""} style={language === "sinhala" && customSinhalaFont ? { fontFamily: `"${customSinhalaFont.family}", "AF Sigiri", "Abhaya Libre", "Noto Sans Sinhala", serif`, fontWeight: 400, letterSpacing: "-0.02em" } : undefined}>{splitHeadlineForHighlight(selectedHeadline || "Your headline goes here", selectedYellowWords(yellowWordsInput)).map((segment, index) => <span className={segment.highlighted ? "headline-yellow" : undefined} key={`${segment.value}-${index}`}>{segment.value}</span>)}</h2>
                 {(hasPostText(badge) || hasPostText(pageName)) && <div className="post-bottom">
                   {hasPostText(badge) && <span className="post-badge">{badge}</span>}
                   {hasPostText(pageName) && <span className="post-page">{pageName}</span>}
