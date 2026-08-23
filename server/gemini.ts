@@ -1,5 +1,3 @@
-import { storagePut } from "./storage";
-
 type GenerationLanguage = "english" | "sinhala";
 type PostFormat = "square" | "portrait";
 
@@ -162,6 +160,7 @@ export async function generateGeminiImage(input: { apiKey: string; story: string
 
   const mimeType = image.mime_type === "image/png" ? "image/png" : "image/jpeg";
   const extension = mimeType === "image/png" ? "png" : "jpg";
+  const { storagePut } = await import("./storage");
   const { url } = await storagePut(`generated/gemini-post-${Date.now()}.${extension}`, Buffer.from(image.data, "base64"), mimeType);
   return { url };
 }

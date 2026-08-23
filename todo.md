@@ -53,3 +53,7 @@
 - [x] Verify the expanded template gallery at desktop and mobile widths before checkpointing. Countdown controls were edited live; Fact check, Watch now, and Key takeaway labels activated correctly; a Key takeaway PNG completed; mobile showed all twelve templates in two columns; TypeScript, 25 tests, and build passed.
 - [x] Add substantive behavioral coverage for Countdown, Fact check, Watch now, and Key takeaway renderer content and editable labels. The extracted canvas renderer has direct tests for the editable labels, Countdown number, and visual geometry/colors of all four templates.
 - [x] Verify completed PNG exports for Countdown, Fact check, and Watch now, including their visible template-specific label or number. Browser history confirmed the three additional completed PNGs after each layout’s live label/number verification.
+- [x] Audit Manus-specific server, authentication, database, storage, and environment dependencies that block Vercel deployment.
+- [x] Add a Vercel-compatible API/server entry point and portable deployment configuration without exposing Gemini keys.
+- [x] Replace or isolate Manus-only authentication and runtime assumptions with documented Vercel-compatible boundaries.
+- [x] Validate the Vercel build path and provide a deployment guide listing all required external services and environment variables. The portable API, asset resolver, public-mode frontend, `vercel.json`, `.env.vercel.example`, documentation, 32 tests, Vercel build, standard build, and managed-preview regression check passed.

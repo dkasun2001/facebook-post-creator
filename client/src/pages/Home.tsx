@@ -41,14 +41,15 @@ import { buildRelevantImagePrompt } from "./imagePrompt";
 import { parsePostPresets, POST_PRESETS_STORAGE_KEY, type PostPreset } from "./postPresets";
 import { colorsFromScheme, elementColorControls, setElementColor, type PostElementColorKey, type PostElementColors } from "./postElementColors";
 import { drawViralTemplateCanvas } from "./viralTemplateCanvas";
+import { assetUrl } from "../lib/assetUrl";
 
 type Language = "english" | "sinhala";
 type Format = "square" | "portrait";
 type CustomSinhalaFont = { family: string; name: string };
 
 const generatedImages = [
-  "/manus-storage/soori-morning-railway_b9770c94.jpg",
-  "/manus-storage/soori-tea-estate_2e11bbf7.jpg",
+  assetUrl("manus-storage/soori-morning-railway_b9770c94.jpg"),
+  assetUrl("manus-storage/soori-tea-estate_2e11bbf7.jpg"),
 ];
 
 const englishHeadlines = [
@@ -591,7 +592,7 @@ export default function Home() {
     <div className="studio-shell">
       <header className="studio-header">
         <div className="brand-lockup">
-          <img src="/manus-storage/soori-sunburst-mark_e75e01ee.png" alt="DK Post Studio sunburst logo" className="brand-mark" />
+          <img src={assetUrl("manus-storage/soori-sunburst-mark_e75e01ee.png")} alt="DK Post Studio sunburst logo" className="brand-mark" />
           <div>
             <p className="brand-name">DK <span>POST STUDIO</span></p>
             <p className="brand-tagline">News brief → headline → visual → Facebook post</p>

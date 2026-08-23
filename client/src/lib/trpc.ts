@@ -1,4 +1,4 @@
 import { createTRPCReact } from "@trpc/react-query";
-import type { AppRouter } from "../../../server/routers";
+import type { PortableAppRouter } from "../../../server/vercel/router";
 
-export const trpc = createTRPCReact<AppRouter>();
+export const trpc = createTRPCReact<PortableAppRouter>();

@@ -150,7 +150,8 @@ function vitePluginManusDebugCollector(): Plugin {
   };
 }
 
-const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector()];
+const isVercelBuild = process.env.VERCEL === "1" || process.env.VITE_DEPLOY_TARGET === "vercel";
+const plugins = [react(), tailwindcss(), jsxLocPlugin(), ...(isVercelBuild ? [] : [vitePluginManusRuntime(), vitePluginManusDebugCollector()])];
 
 export default defineConfig({
   plugins,
