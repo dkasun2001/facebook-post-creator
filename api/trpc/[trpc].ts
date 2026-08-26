@@ -1,8 +1,4 @@
-import { createHTTPHandler } from "@trpc/server/adapters/standalone";
-import { portableAppRouter } from "../../server/vercel/router";
+import { vercelTrpcHandler } from "../../server/vercel/handler";
 
 /** Vercel Node Function entrypoint for same-origin tRPC requests from the Vite client. */
-export default createHTTPHandler({
-  router: portableAppRouter,
-  createContext: () => ({}),
-});
+export default vercelTrpcHandler;

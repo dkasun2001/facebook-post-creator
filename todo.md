@@ -57,3 +57,11 @@
 - [x] Add a Vercel-compatible API/server entry point and portable deployment configuration without exposing Gemini keys.
 - [x] Replace or isolate Manus-only authentication and runtime assumptions with documented Vercel-compatible boundaries.
 - [x] Validate the Vercel build path and provide a deployment guide listing all required external services and environment variables. The portable API, asset resolver, public-mode frontend, `vercel.json`, `.env.vercel.example`, documentation, 32 tests, Vercel build, standard build, and managed-preview regression check passed.
+- [x] Diagnose the Gemini headline request that returns a non-JSON server error in the editor.
+- [x] Correct request routing or API error serialization so headline generation receives a valid response.
+- [x] Verify successful and failure-state headline requests in the browser before checkpointing. The Vercel handler now strips `/api/trpc/` before procedure resolution; an integration request and a browser request with an intentionally invalid key both returned valid `application/json`; 33 tests and the Vercel build passed.
+- [x] Verify a successful Gemini headline response through the portable Vercel function without using a user-owned API key. A handler integration test returns the same JSON envelope used by the browser client.
+- [x] Verify the browser renders returned headline options from a controlled successful API response and record the test limitation. A controlled browser response rendered all four returned headline options without sending or inspecting a user-owned key.
+- [x] Exercise `gemini.generateHeadlines` through the portable Vercel handler with a stubbed generator and assert its successful JSON envelope.
+- [x] Record separate evidence that the portable Gemini procedure—not only the mocked browser request—returns successful JSON. The direct handler POST test passed with a valid application/json success envelope containing all four headlines.
+- [x] Confirm the portable Gemini success-route evidence is present in the verification record and rerun the complete validation suite. The verification record contains the direct handler POST evidence; TypeScript, the Vercel build, and 34 tests passed.
