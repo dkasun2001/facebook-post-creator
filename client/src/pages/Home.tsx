@@ -32,7 +32,6 @@ import {
 } from "lucide-react";
 import { parse as parseFont } from "opentype.js";
 import { toast } from "sonner";
-import { trpc } from "@/lib/trpc";
 import { templateData, type Template } from "./templateConfig";
 import { hasPostText } from "./postMetadata";
 import { postColorSchemes, toRgba, type PostColorScheme } from "./colorSchemes";
@@ -42,6 +41,7 @@ import { parsePostPresets, POST_PRESETS_STORAGE_KEY, type PostPreset } from "./p
 import { colorsFromScheme, elementColorControls, setElementColor, type PostElementColorKey, type PostElementColors } from "./postElementColors";
 import { drawViralTemplateCanvas } from "./viralTemplateCanvas";
 import { assetUrl } from "../lib/assetUrl";
+import { requestGeminiHeadlines } from "../lib/geminiHeadlineApi";
 
 type Language = "english" | "sinhala";
 type Format = "square" | "portrait";
@@ -204,6 +204,7 @@ export default function Home() {
   const [geminiKeyReady, setGeminiKeyReady] = useState(false);
   const [headlineModel, setHeadlineModel] = useState("");
   const [showGeminiApiKey, setShowGeminiApiKey] = useState(false);
+  const [generatingHeadlines, setGeneratingHeadlines] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [customSinhalaFont, setCustomSinhalaFont] = useState<CustomSinhalaFont | null>(null);
   const [fontLoading, setFontLoading] = useState(false);
@@ -235,16 +236,6 @@ export default function Home() {
     if (geminiKeyReady) writeGeminiApiKey(window.localStorage, geminiApiKey);
   }, [geminiApiKey, geminiKeyReady]);
 
-  const headlineGeneration = trpc.gemini.generateHeadlines.useMutation({
-    onSuccess: ({ headlines: generated }) => {
-      setHeadlines(generated);
-      setSelectedHeadline(generated[0]);
-      setExpanded("headline");
-      toast.success("Gemini created four SEO-focused headline angles.");
-    },
-    onError: (error) => toast.error(error.message || "Gemini could not generate headlines."),
-  });
-
   const changeLanguage = (next: Language) => {
     setLanguage(next);
     const options = next === "sinhala" ? sinhalaHeadlines : englishHeadlines;
@@ -252,7 +243,7 @@ export default function Home() {
     setSelectedHeadline(options[0]);
   };
 
-  const generateHeadlines = () => {
+  const generateHeadlines = async () => {
     if (story.trim().length < 12) {
       toast.error("Add a little more news detail before generating headlines.");
       return;
@@ -261,7 +252,18 @@ export default function Home() {
       toast.error("Add your Gemini API key to generate AI headlines.");
       return;
     }
-    headlineGeneration.mutate({ apiKey: geminiApiKey.trim(), story, language, model: headlineModel.trim() || undefined });
+    setGeneratingHeadlines(true);
+    try {
+      const generated = await requestGeminiHeadlines({ apiKey: geminiApiKey.trim(), story, language, model: headlineModel.trim() || undefined });
+      setHeadlines(generated);
+      setSelectedHeadline(generated[0]);
+      setExpanded("headline");
+      toast.success("Gemini created four SEO-focused headline angles.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Gemini could not generate headlines.");
+    } finally {
+      setGeneratingHeadlines(false);
+    }
   };
 
   const clearGeminiApiKey = () => {
@@ -636,7 +638,7 @@ export default function Home() {
               {geminiApiKey && <button className="text-action gemini-key-remove" type="button" onClick={clearGeminiApiKey}>Remove key from this browser</button>}
             </div>
             <div className="story-actions">
-              <button className="signal-button" type="button" onClick={generateHeadlines} disabled={headlineGeneration.isPending}>{headlineGeneration.isPending ? <LoaderCircle className="spin" size={16} /> : <WandSparkles size={16} />}{headlineGeneration.isPending ? "Gemini is writing…" : "Generate 4 headlines"}</button>
+              <button className="signal-button" type="button" onClick={generateHeadlines} disabled={generatingHeadlines}>{generatingHeadlines ? <LoaderCircle className="spin" size={16} /> : <WandSparkles size={16} />}{generatingHeadlines ? "Gemini is writing…" : "Generate 4 headlines"}</button>
               <button className="outline-button" type="button" onClick={() => setExpanded("headline")}>I’ll write my own <ChevronDown size={14} /></button>
             </div>
             <div className="copy-assist">

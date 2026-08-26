@@ -7,7 +7,7 @@ DK Post Studio is prepared as a **public, browser-local editor** for Vercel. The
 | Area | Vercel-ready behavior | Action before first deployment |
 |---|---|---|
 | Frontend | Vite build output is emitted to `dist/public`. | Use `pnpm build:vercel`. |
-| API | `api/trpc/[trpc].ts` is a Node tRPC Function at `/api/trpc/*`. | No route change is required in the client. |
+| API | `api/gemini/headlines.ts` is a Node Function at `/api/gemini/headlines`. | The editor calls this same-origin JSON endpoint directly. |
 | Authentication | Public editor mode; Manus OAuth is not invoked. | Add a separate provider only if user accounts or saved cloud data are required. |
 | Gemini | The creator supplies a key per browser; the function does not persist it. | Do **not** add a shared Gemini key unless you also add usage limits and abuse controls. |
 | Assets | Logo, built-in images, and AFSigiri load from `VITE_ASSET_BASE_URL`. | Upload the four listed assets to a public host and set the variable. |

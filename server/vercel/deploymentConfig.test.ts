@@ -10,7 +10,7 @@ describe("Vercel deployment configuration", () => {
     const packageJson = JSON.parse(fs.readFileSync(path.join(projectRoot, "package.json"), "utf8"));
     expect(config.outputDirectory).toBe("dist/public");
     expect(config.buildCommand).toBe("pnpm build:vercel");
-    expect(config.functions["api/trpc/[trpc].ts"].maxDuration).toBe(60);
+    expect(config.functions["api/gemini/headlines.ts"].maxDuration).toBe(60);
     expect(config.rewrites[0]).toEqual({ source: "/((?!api/).*)", destination: "/index.html" });
     expect(packageJson.scripts["build:vercel"]).toContain("VITE_DEPLOY_TARGET=vercel vite build");
   });

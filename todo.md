@@ -65,3 +65,9 @@
 - [x] Exercise `gemini.generateHeadlines` through the portable Vercel handler with a stubbed generator and assert its successful JSON envelope.
 - [x] Record separate evidence that the portable Gemini procedure—not only the mocked browser request—returns successful JSON. The direct handler POST test passed with a valid application/json success envelope containing all four headlines.
 - [x] Confirm the portable Gemini success-route evidence is present in the verification record and rerun the complete validation suite. The verification record contains the direct handler POST evidence; TypeScript, the Vercel build, and 34 tests passed.
+- [x] Inspect the live `facebook-post-creator.vercel.app` Gemini endpoint and identify why it returns non-JSON content. Both live tRPC routes failed before procedure routing with Vercel `FUNCTION_INVOCATION_FAILED` and text/plain responses.
+- [x] Correct the production Vercel function route or deployment configuration causing the live parse failure. Replaced the creator's failing tRPC call with a lightweight direct JSON endpoint, mounted it for managed preview, added server/client tests, and added readable non-JSON fallback handling.
+- [ ] Verify a valid JSON response from the live production API before checkpointing.
+- [ ] Deploy the direct `/api/gemini/headlines` change to Vercel and verify the live endpoint returns JSON.
+- [ ] Verify the live browser headline-generation flow uses the direct endpoint without the `Unexpected token` error.
+- [x] Remove the unused failing Vercel tRPC Function to prevent continued production invocation failures. The obsolete `api/trpc/[trpc].ts` entrypoint was removed; the direct JSON function is the only configured production headline endpoint.
